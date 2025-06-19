@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buisness Management Portal</title>
+    <title>Meesho Seller Hub Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -877,10 +877,8 @@
 <body>
     <div class="app-container">
         <div class="app-header">
-            <h1>Buisness Management Portal</h1>
+            <h1>Meesho Seller Hub Pro</h1>
             <p>Professional Inventory & Sales Management</p>
-                        <p>Made by Aamir</p>
-
             <button id="reset-all-btn" class="reset-btn" title="Reset all data">♻️</button>
             <div class="seller-switcher">
                 <button class="seller-btn active" data-seller="AAA">AAA</button>
@@ -1307,7 +1305,9 @@
         </div>
         
         <!-- Audio element for beep sound -->
-        <audio id="beep-sound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" preload="auto"></audio>
+        <audio id="beep-sound" preload="auto">
+            <source src="https://assets.mixkit.co/sfx/preview/mixkit-electronic-retail-notification-2575.mp3" type="audio/mpeg">
+        </audio>
     </div>
 
     <script>
@@ -1350,6 +1350,15 @@
             }
 
             // Set up all event listeners
+            setupEventListeners();
+
+            // Load initial data
+            loadInventory();
+            loadPurchases();
+            loadDashboardData('daily');
+        });
+
+        function setupEventListeners() {
             // Navigation
             document.querySelectorAll('.seller-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1364,7 +1373,6 @@
                     }
                     
                     // Reload seller-specific data
-                    setupRealtimeListeners();
                     loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
                 });
             });
@@ -1377,6 +1385,8 @@
                     // Load data when switching to specific views
                     if(targetView === 'dashboard-view') {
                         loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+                    } else if (targetView === 'inventory-view') {
+                        loadInventory();
                     }
                 });
             });
@@ -1389,6 +1399,8 @@
                     // Load data when switching to specific views
                     if(targetView === 'dashboard-view') {
                         loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+                    } else if (targetView === 'inventory-view') {
+                        loadInventory();
                     }
                 });
             });
@@ -1400,23 +1412,7 @@
             // Barcode generation
             document.getElementById('barcode-form').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const productName = document.getElementById('product-name').value.trim();
-                const size = document.getElementById('product-size').value.trim();
-                const color = document.getElementById('product-color').value.trim();
-                const profitMargin = document.getElementById('profit-margin').value.trim();
-                
-                if (!productName || !size || !color || !profitMargin) {
-                    showToast('Please fill all fields');
-                    return;
-                }
-                
-                // Generate barcode
-                const barcodeValue = `${productName}.${size}.${color}`;
-                generateBarcode(barcodeValue);
-                
-                // Show result container
-                document.getElementById('barcode-result').style.display = 'block';
+                generateBarcodeFromForm();
             });
             
             document.getElementById('download-barcode').addEventListener('click', downloadBarcode);
@@ -1490,21 +1486,27 @@
                         `${e.target.dataset.type === 'orders' ? 'Order' : 'Return'} Details`;
                 }
             });
+        }
 
-            // Load initial data
-            // Load inventory (common for all sellers)
-            loadInventory();
+        function generateBarcodeFromForm() {
+            const productName = document.getElementById('product-name').value.trim();
+            const size = document.getElementById('product-size').value.trim();
+            const color = document.getElementById('product-color').value.trim();
+            const profitMargin = document.getElementById('profit-margin').value.trim();
             
-            // Load purchases (common for all sellers)
-            loadPurchases();
+            if (!productName || !size || !color || !profitMargin) {
+                showToast('Please fill all fields');
+                return;
+            }
             
-            // Load analytics data
-            loadDashboardData('daily');
+            // Generate barcode
+            const barcodeValue = `${productName}.${size}.${color}`;
+            generateBarcode(barcodeValue);
             
-            // Set up real-time listeners
-            setupRealtimeListeners();
-        });
-
+            // Show result container
+            document.getElementById('barcode-result').style.display = 'block';
+        }
+        
         function generateBarcode(value) {
             JsBarcode("#barcode", value, {
                 format: "CODE128",
@@ -2412,7 +2414,7 @@
         
         function resetAllDataWithPassword() {
             const password = prompt("Enter admin password to reset all data:");
-            if (password !== "Arshad1606") {
+            if (password !== "MeeshoAdmin123") {
                 showToast("Incorrect password");
                 return;
             }
@@ -2448,7 +2450,9 @@
                 })
                 .then(() => {
                     showToast("All data has been reset");
-                    loadInitialData();
+                    loadInventory();
+                    loadPurchases();
+                    loadDashboardData('daily');
                 })
                 .catch(error => {
                     console.error("Error resetting data: ", error);
