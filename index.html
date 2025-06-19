@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
         :root {
@@ -54,6 +53,7 @@
             min-height: 95vh;
         }
 
+        /* Header styles */
         .app-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
@@ -94,6 +94,7 @@
             font-weight: 600;
         }
 
+        /* Main content area */
         .view-container {
             padding: 24px 16px 80px;
             min-height: calc(100vh - 140px);
@@ -101,10 +102,11 @@
             max-height: calc(100vh - 140px);
         }
 
+        /* Home screen grid */
         .home-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
             margin-top: 20px;
         }
 
@@ -112,7 +114,7 @@
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 24px;
+            padding: 16px;
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
@@ -128,32 +130,33 @@
         }
 
         .icon-container {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: rgba(111, 66, 193, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .icon-container i {
-            font-size: 24px;
+            font-size: 20px;
             color: var(--primary);
         }
 
         .feature-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
+            font-size: 1rem;
+            margin-bottom: 6px;
             color: var(--dark);
         }
 
         .feature-card p {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.75rem;
         }
 
+        /* Bottom navigation */
         .nav-bottom {
             position: fixed;
             bottom: 0;
@@ -175,9 +178,9 @@
             flex-direction: column;
             align-items: center;
             color: var(--gray);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 6px 8px;
             border-radius: 12px;
             transition: var(--transition);
         }
@@ -188,10 +191,11 @@
         }
 
         .nav-item i {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 4px;
         }
 
+        /* View management */
         .view {
             display: none;
         }
@@ -203,7 +207,7 @@
         .view-header {
             display: flex;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .back-btn {
@@ -216,16 +220,19 @@
             justify-content: center;
             margin-right: 12px;
             cursor: pointer;
+            border: none;
+            font-size: 16px;
         }
 
         .view-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: var(--dark);
         }
 
+        /* Form styles */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
@@ -233,14 +240,15 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--dark);
+            font-size: 0.9rem;
         }
 
         .form-control {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             border: 1px solid var(--light-gray);
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: var(--transition);
         }
 
@@ -281,20 +289,19 @@
             background: #ff5252;
         }
 
+        /* Barcode styles */
         .barcode-container {
-            margin: 24px 0;
-            padding: 20px;
+            margin: 20px 0;
+            padding: 16px;
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             text-align: center;
-            position: relative;
         }
 
         #barcode {
             width: 100%;
-            max-width: 200px;
-            height: 80px;
+            height: 100px;
             margin: 10px auto;
         }
 
@@ -308,14 +315,16 @@
             flex: 1;
         }
 
+        /* Inventory item styles */
         .inventory-item {
             background: white;
             border-radius: var(--border-radius);
-            padding: 16px;
-            margin-bottom: 16px;
+            padding: 14px;
+            margin-bottom: 12px;
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
+            position: relative;
         }
 
         .item-info {
@@ -323,55 +332,76 @@
         }
 
         .item-info h4 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             margin-bottom: 4px;
         }
 
         .item-info p {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--gray);
         }
 
         .stock-control {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .stock-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: var(--light-gray);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             cursor: pointer;
+            border: none;
         }
 
         .stock-count {
-            min-width: 40px;
+            min-width: 36px;
             text-align: center;
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .stock-input {
-            width: 80px;
+            width: 70px;
             padding: 8px;
             border: 1px solid var(--light-gray);
             border-radius: 8px;
             text-align: center;
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
+        .delete-item {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Scanner styles */
         .scanner-container {
             background: black;
             border-radius: var(--border-radius);
             overflow: hidden;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             position: relative;
-            height: 300px;
+            height: 250px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -392,41 +422,43 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            pointer-events: none;
         }
 
         .scanner-frame {
             width: 80%;
-            max-width: 300px;
-            height: 150px;
+            max-width: 250px;
+            height: 120px;
             border: 4px solid white;
-            border-radius: 16px;
+            border-radius: 12px;
             box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);
         }
 
+        /* Stats and dashboard styles */
         .stats-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             background: white;
             border-radius: var(--border-radius);
-            padding: 16px;
+            padding: 14px;
             box-shadow: var(--shadow);
             text-align: center;
         }
 
         .stat-value {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            margin: 8px 0;
+            margin: 6px 0;
         }
 
         .stat-label {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
 
         .profit {
@@ -437,19 +469,20 @@
             color: var(--secondary);
         }
 
+        /* Filter styles */
         .filter-container {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .filter-btn {
             flex: 1;
-            padding: 10px;
+            padding: 8px;
             background: var(--light-gray);
             border: none;
             border-radius: 12px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
         }
 
@@ -458,21 +491,23 @@
             color: white;
         }
 
+        /* Chart styles */
         .chart-container {
             background: white;
             border-radius: var(--border-radius);
-            padding: 16px;
-            margin-bottom: 24px;
+            padding: 14px;
+            margin-bottom: 20px;
             box-shadow: var(--shadow);
         }
 
         .chart-title {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
+            font-size: 1rem;
+            margin-bottom: 12px;
             text-align: center;
             font-weight: 600;
         }
 
+        /* Table styles */
         .summary-table {
             width: 100%;
             border-collapse: collapse;
@@ -480,11 +515,12 @@
             border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: var(--shadow);
+            font-size: 0.85rem;
         }
 
         .summary-table th,
         .summary-table td {
-            padding: 12px 16px;
+            padding: 10px 12px;
             text-align: left;
         }
 
@@ -492,27 +528,55 @@
             background: var(--primary);
             color: white;
             font-weight: 500;
+            font-size: 0.8rem;
         }
 
         .summary-table tr:nth-child(even) {
             background: var(--light-gray);
         }
 
+        /* Returns tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 16px;
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.85rem;
+        }
+
+        .tab.active {
+            background: white;
+            box-shadow: var(--shadow);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Courier options */
         .courier-option {
             display: flex;
             align-items: center;
             padding: 12px;
             background: white;
             border-radius: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             box-shadow: var(--shadow);
         }
 
         .courier-color {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            margin-right: 12px;
+            margin-right: 10px;
         }
 
         .color-sf { background: #ff9f43; }
@@ -527,15 +591,18 @@
         .courier-name {
             font-weight: 600;
             margin-bottom: 4px;
+            font-size: 0.9rem;
         }
 
         .courier-charge input {
-            width: 100px;
-            padding: 8px;
+            width: 90px;
+            padding: 6px;
             border: 1px solid var(--light-gray);
             border-radius: 8px;
+            font-size: 0.85rem;
         }
 
+        /* Toast notification */
         .toast {
             position: fixed;
             bottom: 80px;
@@ -543,37 +610,15 @@
             transform: translateX(-50%);
             background: var(--primary);
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 50px;
             box-shadow: var(--shadow);
             z-index: 100;
             animation: fadeInOut 3s forwards;
+            font-size: 0.9rem;
         }
 
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            background: var(--light-gray);
-            border-radius: 12px;
-            padding: 4px;
-        }
-
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .tab.active {
-            background: white;
-            box-shadow: var(--shadow);
-            font-weight: 600;
-            color: var(--primary);
-        }
-
+        /* Modal styles */
         .modal {
             position: fixed;
             top: 0;
@@ -600,7 +645,7 @@
             width: 90%;
             max-width: 400px;
             border-radius: var(--border-radius);
-            padding: 24px;
+            padding: 20px;
             box-shadow: var(--shadow);
             transform: translateY(20px);
             transition: var(--transition);
@@ -614,84 +659,71 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .modal-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
         }
 
         .close-modal {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: var(--light-gray);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            border: none;
+            font-size: 16px;
         }
 
+        /* Charge configuration */
         .charge-config {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .charge-label {
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
         }
 
         .charge-input {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid var(--light-gray);
             border-radius: 8px;
+            font-size: 0.9rem;
         }
 
+        /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 16px;
             color: var(--gray);
         }
 
         .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: 2.5rem;
+            margin-bottom: 12px;
             opacity: 0.3;
         }
 
-        .data-storage-info {
-            background: rgba(111, 66, 193, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            margin: 20px 0;
-            border-left: 4px solid var(--primary);
-        }
-
-        .data-storage-info h4 {
-            color: var(--primary);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .data-storage-info h4 i {
-            margin-right: 10px;
-        }
-
-        .data-storage-info ul {
-            padding-left: 20px;
-            margin: 10px 0;
-        }
-
-        .data-storage-info li {
+        .empty-state h3 {
+            font-size: 1.1rem;
             margin-bottom: 8px;
         }
 
+        .empty-state p {
+            font-size: 0.85rem;
+        }
+
+        /* Confirmation popup */
         .confirmation-popup {
             position: fixed;
             top: 0;
@@ -716,19 +748,19 @@
         .confirmation-content {
             background: white;
             width: 90%;
-            max-width: 300px;
+            max-width: 280px;
             border-radius: var(--border-radius);
-            padding: 30px;
+            padding: 24px;
             box-shadow: var(--shadow);
             text-align: center;
         }
 
         .checkmark {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             background: var(--success);
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
             position: relative;
             animation: scaleIn 0.3s forwards;
         }
@@ -736,10 +768,10 @@
         .checkmark::after {
             content: '';
             position: absolute;
-            left: 25px;
-            top: 40px;
-            width: 25px;
-            height: 5px;
+            left: 20px;
+            top: 35px;
+            width: 20px;
+            height: 4px;
             background: white;
             transform: rotate(45deg);
         }
@@ -747,14 +779,34 @@
         .checkmark::before {
             content: '';
             position: absolute;
-            left: 20px;
-            top: 35px;
-            width: 15px;
-            height: 5px;
+            left: 16px;
+            top: 30px;
+            width: 12px;
+            height: 4px;
             background: white;
             transform: rotate(-45deg);
         }
 
+        /* Purchase items */
+        .purchase-item {
+            margin-bottom: 10px;
+        }
+
+        .item-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .item-row input {
+            flex: 1;
+        }
+
+        .item-row input.item-name {
+            flex: 2;
+        }
+
+        /* Animations */
         @keyframes scaleIn {
             from { transform: scale(0); }
             to { transform: scale(1); }
@@ -767,6 +819,7 @@
             100% { opacity: 0; bottom: 50px; }
         }
 
+        /* Responsive adjustments */
         @media (min-width: 768px) {
             .app-container {
                 max-width: 480px;
@@ -780,8 +833,8 @@
             <h1>Meesho Seller Hub Pro</h1>
             <p>Professional Inventory & Sales Management</p>
             <div class="seller-switcher">
-                <button class="seller-btn active" data-seller="seller1">Seller 1</button>
-                <button class="seller-btn" data-seller="seller2">Seller 2</button>
+                <button class="seller-btn active" data-seller="AAA">AAA</button>
+                <button class="seller-btn" data-seller="RA">RA</button>
                 <button class="seller-btn" data-seller="combined">Combined</button>
             </div>
         </div>
@@ -850,28 +903,28 @@
                 <form id="barcode-form">
                     <div class="form-group">
                         <label for="product-name">Product Name</label>
-                        <input type="text" id="product-name" class="form-control" placeholder="Enter product name">
+                        <input type="text" id="product-name" class="form-control" placeholder="Enter product name" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="product-size">Size</label>
-                        <input type="text" id="product-size" class="form-control" placeholder="Enter size">
+                        <input type="text" id="product-size" class="form-control" placeholder="Enter size" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="product-color">Color</label>
-                        <input type="text" id="product-color" class="form-control" placeholder="Enter color">
+                        <input type="text" id="product-color" class="form-control" placeholder="Enter color" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="profit-margin">Profit Margin (₹)</label>
-                        <input type="number" id="profit-margin" class="form-control" placeholder="Enter profit in rupees" min="0">
+                        <input type="number" id="profit-margin" class="form-control" placeholder="Enter profit in rupees" min="0" step="0.01" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Generate Barcode</button>
                 </form>
                 
-                <div class="barcode-container">
+                <div class="barcode-container" id="barcode-result" style="display:none;">
                     <h3>Your Product Barcode</h3>
                     <svg id="barcode"></svg>
                     <div class="barcode-actions">
@@ -889,56 +942,14 @@
                 </div>
                 
                 <div class="inventory-list" id="inventory-list">
-                    <div class="inventory-item">
-                        <div class="item-info">
-                            <h4>Cotton T-Shirt.M.Blue</h4>
-                            <p>Profit: ₹45 per unit</p>
-                        </div>
-                        <div class="stock-control">
-                            <div class="stock-btn minus">-</div>
-                            <input type="number" class="stock-input" value="24" min="0">
-                            <div class="stock-btn plus">+</div>
-                        </div>
-                    </div>
-                    
-                    <div class="inventory-item">
-                        <div class="item-info">
-                            <h4>Jeans Pant.32.Black</h4>
-                            <p>Profit: ₹85 per unit</p>
-                        </div>
-                        <div class="stock-control">
-                            <div class="stock-btn minus">-</div>
-                            <input type="number" class="stock-input" value="18" min="0">
-                            <div class="stock-btn plus">+</div>
-                        </div>
-                    </div>
-                    
-                    <div class="inventory-item">
-                        <div class="item-info">
-                            <h4>Summer Dress.S.Red</h4>
-                            <p>Profit: ₹120 per unit</p>
-                        </div>
-                        <div class="stock-control">
-                            <div class="stock-btn minus">-</div>
-                            <input type="number" class="stock-input" value="12" min="0">
-                            <div class="stock-btn plus">+</div>
-                        </div>
-                    </div>
-                    
-                    <div class="inventory-item">
-                        <div class="item-info">
-                            <h4>Winter Jacket.L.Navy</h4>
-                            <p>Profit: ₹180 per unit</p>
-                        </div>
-                        <div class="stock-control">
-                            <div class="stock-btn minus">-</div>
-                            <input type="number" class="stock-input" value="8" min="0">
-                            <div class="stock-btn plus">+</div>
-                        </div>
+                    <div class="empty-state">
+                        <i>📦</i>
+                        <h3>No products in inventory</h3>
+                        <p>Add products using the barcode generator</p>
                     </div>
                 </div>
                 
-                <button class="btn btn-primary">Update All Inventory</button>
+                <button id="update-inventory" class="btn btn-primary">Update All Inventory</button>
             </div>
             
             <!-- Order Scanner View -->
@@ -1018,7 +1029,7 @@
                     
                     <div class="form-group">
                         <label for="compensation-amount">Compensation Amount (₹)</label>
-                        <input type="number" id="compensation-amount" class="form-control" placeholder="Enter compensation amount" min="0" value="0">
+                        <input type="number" id="compensation-amount" class="form-control" placeholder="Enter compensation amount" min="0" value="0" step="0.01">
                     </div>
                     
                     <button id="process-customer-return" class="btn btn-primary">Process Customer Return</button>
@@ -1080,34 +1091,34 @@
                 </div>
                 
                 <div class="filter-container">
-                    <button class="filter-btn active">Weekly</button>
-                    <button class="filter-btn">Monthly</button>
-                    <button class="filter-btn">Annual</button>
+                    <button class="filter-btn active" data-period="weekly">Weekly</button>
+                    <button class="filter-btn" data-period="monthly">Monthly</button>
+                    <button class="filter-btn" data-period="annual">Annual</button>
                 </div>
                 
                 <div class="stats-container">
                     <div class="stat-card">
                         <div class="stat-label">Total Orders</div>
-                        <div class="stat-value">142</div>
-                        <div class="stat-change">↑ 12% from last week</div>
+                        <div class="stat-value" id="total-orders">0</div>
+                        <div class="stat-change" id="order-change">Loading...</div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-label">Returns</div>
-                        <div class="stat-value">18</div>
-                        <div class="stat-change">↓ 5% from last week</div>
+                        <div class="stat-value" id="total-returns">0</div>
+                        <div class="stat-change" id="return-change">Loading...</div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-label">Net Profit</div>
-                        <div class="stat-value profit">₹24,560</div>
-                        <div class="stat-change">↑ 8% from last week</div>
+                        <div class="stat-value profit" id="net-profit">₹0</div>
+                        <div class="stat-change" id="profit-change">Loading...</div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-label">Return Charges</div>
-                        <div class="stat-value loss">₹1,250</div>
-                        <div class="stat-change">↓ 3% from last week</div>
+                        <div class="stat-value loss" id="return-charges">₹0</div>
+                        <div class="stat-change" id="charge-change">Loading...</div>
                     </div>
                 </div>
                 
@@ -1117,8 +1128,13 @@
                 </div>
                 
                 <div class="chart-container">
+                    <div class="chart-title">Profit & Loss</div>
+                    <canvas id="profit-chart"></canvas>
+                </div>
+                
+                <div class="chart-container">
                     <div class="chart-title">Top Selling Products</div>
-                    <table class="summary-table">
+                    <table class="summary-table" id="top-products">
                         <thead>
                             <tr>
                                 <th>Product</th>
@@ -1128,37 +1144,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Cotton T-Shirt</td>
-                                <td>56</td>
-                                <td>4</td>
-                                <td class="profit">₹8,400</td>
-                            </tr>
-                            <tr>
-                                <td>Jeans Pant</td>
-                                <td>42</td>
-                                <td>6</td>
-                                <td class="profit">₹7,560</td>
-                            </tr>
-                            <tr>
-                                <td>Summer Dress</td>
-                                <td>28</td>
-                                <td>3</td>
-                                <td class="profit">₹5,600</td>
-                            </tr>
-                            <tr>
-                                <td>Winter Jacket</td>
-                                <td>16</td>
-                                <td>5</td>
-                                <td class="profit">₹3,000</td>
-                            </tr>
+                            <!-- Will be populated dynamically -->
                         </tbody>
                     </table>
-                </div>
-                
-                <div class="chart-container">
-                    <div class="chart-title">Profit & Loss</div>
-                    <canvas id="profit-chart"></canvas>
                 </div>
             </div>
             
@@ -1172,22 +1160,22 @@
                 <form id="purchase-form">
                     <div class="form-group">
                         <label for="vendor-name">Vendor Name</label>
-                        <input type="text" id="vendor-name" class="form-control" placeholder="Enter vendor name">
+                        <input type="text" id="vendor-name" class="form-control" placeholder="Enter vendor name" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="purchase-date">Purchase Date</label>
-                        <input type="date" id="purchase-date" class="form-control">
+                        <input type="date" id="purchase-date" class="form-control" required>
                     </div>
                     
                     <div class="form-group">
                         <label>Items Purchased</label>
                         <div id="purchase-items">
                             <div class="purchase-item">
-                                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                    <input type="text" class="form-control" placeholder="Item name" style="flex: 2;">
-                                    <input type="number" class="form-control" placeholder="Qty" min="1" style="flex: 1;">
-                                    <input type="number" class="form-control" placeholder="Price (₹)" min="0" step="0.01" style="flex: 1;">
+                                <div class="item-row">
+                                    <input type="text" class="form-control item-name" placeholder="Item name">
+                                    <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
+                                    <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
                                 </div>
                             </div>
                         </div>
@@ -1196,7 +1184,7 @@
                     
                     <div class="form-group">
                         <label for="total-amount">Total Amount Paid (₹)</label>
-                        <input type="number" id="total-amount" class="form-control" placeholder="Enter total amount" min="0" step="0.01">
+                        <input type="number" id="total-amount" class="form-control" placeholder="Enter total amount" min="0" step="0.01" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Save Purchase</button>
@@ -1204,7 +1192,7 @@
                 
                 <div class="chart-container" style="margin-top: 30px;">
                     <div class="chart-title">Recent Purchases</div>
-                    <table class="summary-table">
+                    <table class="summary-table" id="purchases-table">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -1214,24 +1202,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>10 Jun</td>
-                                <td>Fashion Fabrics</td>
-                                <td>3 items</td>
-                                <td>₹8,500</td>
-                            </tr>
-                            <tr>
-                                <td>8 Jun</td>
-                                <td>Textile Traders</td>
-                                <td>5 items</td>
-                                <td>₹12,300</td>
-                            </tr>
-                            <tr>
-                                <td>5 Jun</td>
-                                <td>Garment Suppliers</td>
-                                <td>2 items</td>
-                                <td>₹5,200</td>
-                            </tr>
+                            <!-- Will be populated dynamically -->
                         </tbody>
                     </table>
                 </div>
@@ -1267,7 +1238,7 @@
                 <div class="checkmark"></div>
                 <h3>Return Processed!</h3>
                 <p>Your return has been successfully processed</p>
-                <button class="btn btn-primary" style="margin-top: 20px;" onclick="document.getElementById('confirmation-popup').classList.remove('active')">OK</button>
+                <button class="btn btn-primary" style="margin-top: 20px;" id="close-confirmation">OK</button>
             </div>
         </div>
         
@@ -1280,43 +1251,31 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Set charges per return (₹)</label>
-                    
-                    <div class="charge-config">
-                        <div>
-                            <div class="charge-label">Shadowfax</div>
-                            <input type="number" class="charge-input" value="25">
-                        </div>
-                        <div>
-                            <div class="charge-label">Ecom</div>
-                            <input type="number" class="charge-input" value="30">
-                        </div>
-                        <div>
-                            <div class="charge-label">Delhivery</div>
-                            <input type="number" class="charge-input" value="35">
-                        </div>
-                        <div>
-                            <div class="charge-label">Valmo</div>
-                            <input type="number" class="charge-input" value="20">
-                        </div>
+                    <label>Set charges per customer return (₹)</label>
+                    <div class="charge-config" id="charge-config">
+                        <!-- Charges will be populated here -->
                     </div>
+                    <button id="add-courier" class="btn btn-secondary" style="margin-top: 10px;">+ Add Courier</button>
                 </div>
                 
-                <button class="btn btn-primary">Save Charges</button>
+                <button id="save-charges" class="btn btn-primary">Save Charges</button>
             </div>
         </div>
+        
+        <!-- Audio element for beep sound -->
+        <audio id="beep-sound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" preload="auto"></audio>
     </div>
 
     <script>
-        // Firebase configuration - REPLACE WITH YOUR OWN CONFIG
+        // Firebase configuration
         const firebaseConfig = {
-    apiKey: "AIzaSyAfi1U9EqEPsSII4f5oqJrnHuVZeK6IrEU",
-    authDomain: "seller-panel-4122b.firebaseapp.com",
-    projectId: "seller-panel-4122b",
-    storageBucket: "seller-panel-4122b.firebasestorage.app",
-    messagingSenderId: "466140503943",
-    appId: "1:466140503943:web:d097604db592ec79fa3d22",
-    measurementId: "G-FCZ4WQ8S3R"
+            apiKey: "AIzaSyAfi1U9EqEPsSII4f5oqJrnHuVZeK6IrEU",
+            authDomain: "seller-panel-4122b.firebaseapp.com",
+            projectId: "seller-panel-4122b",
+            storageBucket: "seller-panel-4122b.appspot.com",
+            messagingSenderId: "466140503943",
+            appId: "1:466140503943:web:d097604db592ec79fa3d22",
+            measurementId: "G-FCZ4WQ8S3R"
         };
 
         // Initialize Firebase
@@ -1324,36 +1283,38 @@
         const db = firebase.firestore();
         
         // Current seller state
-        let currentSeller = "seller1";
+        let currentSeller = "AAA";
         let products = [];
+        let orders = [];
+        let returns = [];
+        let purchases = [];
+        let couriers = [
+            { id: "shadowfax", name: "Shadowfax", color: "sf", charge: 25 },
+            { id: "ecom", name: "Ecom", color: "ec", charge: 30 },
+            { id: "delhivery", name: "Delhivery", color: "dl", charge: 35 },
+            { id: "valmo", name: "Valmo", color: "vm", charge: 20 }
+        ];
         let scannerActive = false;
         let rescanActive = false;
+        let salesChart = null;
+        let profitChart = null;
         
-        // DOM Elements
-        const views = {
-            home: document.getElementById('home-view'),
-            barcode: document.getElementById('barcode-view'),
-            inventory: document.getElementById('inventory-view'),
-            scanner: document.getElementById('scanner-view'),
-            returns: document.getElementById('returns-view'),
-            dashboard: document.getElementById('dashboard-view'),
-            purchase: document.getElementById('purchase-view')
-        };
-        
-        // Initialize the app
+        // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initApp();
             setupEventListeners();
-            initCharts();
+            loadInitialData();
         });
         
         function initApp() {
-            // Generate initial barcode for demo
-            generateBarcode("PRODUCT.SIZE.COLOR");
+            // Load courier charges from localStorage if available
+            const savedCharges = localStorage.getItem('courierCharges');
+            if(savedCharges) {
+                couriers = JSON.parse(savedCharges);
+            }
             
-            // Hide download buttons initially
-            document.getElementById('download-barcode').style.display = 'none';
-            document.getElementById('save-barcode').style.display = 'none';
+            // Initialize charts
+            initCharts();
         }
         
         function setupEventListeners() {
@@ -1399,70 +1360,81 @@
             // Charges modal
             document.getElementById('configure-charges').addEventListener('click', showChargesModal);
             document.querySelector('.close-modal').addEventListener('click', hideChargesModal);
+            document.getElementById('save-charges').addEventListener('click', saveCharges);
+            document.getElementById('add-courier').addEventListener('click', addCourier);
             
             // Purchase history
             document.getElementById('add-item').addEventListener('click', addPurchaseItem);
             document.getElementById('purchase-form').addEventListener('submit', savePurchase);
-        }
-        
-        function initCharts() {
-            // Sales chart
-            new Chart(document.getElementById('sales-chart'), {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Orders',
-                        data: [12, 19, 15, 22, 18, 25, 30],
-                        borderColor: '#6f42c1',
-                        backgroundColor: 'rgba(111, 66, 193, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
+            
+            // Confirmation popup
+            document.getElementById('close-confirmation').addEventListener('click', () => {
+                document.getElementById('confirmation-popup').classList.remove('active');
             });
             
-            // Profit chart
-            new Chart(document.getElementById('profit-chart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Profit',
-                        data: [12000, 19000, 15000, 22000, 18000, 24500],
-                        backgroundColor: '#28a745',
-                        borderColor: '#218838',
-                        borderWidth: 1
-                    }, {
-                        label: 'Loss',
-                        data: [3000, 2500, 4000, 3500, 2800, 1500],
-                        backgroundColor: '#ff6b6b',
-                        borderColor: '#e05252',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
+            // Dashboard filters
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', handleDashboardFilter);
             });
+            
+            // Update inventory
+            document.getElementById('update-inventory').addEventListener('click', updateInventory);
+        }
+        
+        function loadInitialData() {
+            // Load inventory
+            loadInventory();
+            
+            // Load purchases
+            loadPurchases();
+            
+            // Load analytics data
+            loadDashboardData('weekly');
+            
+            // Set up real-time listeners
+            setupRealtimeListeners();
+        }
+        
+        function setupRealtimeListeners() {
+            // Real-time inventory updates
+            db.collection(`sellers/${currentSeller}/products`)
+                .onSnapshot((snapshot) => {
+                    products = [];
+                    snapshot.forEach(doc => {
+                        products.push({id: doc.id, ...doc.data()});
+                    });
+                    renderInventory();
+                });
+            
+            // Real-time orders updates
+            db.collection(`sellers/${currentSeller}/orders`)
+                .onSnapshot((snapshot) => {
+                    orders = [];
+                    snapshot.forEach(doc => {
+                        orders.push({id: doc.id, ...doc.data()});
+                    });
+                    updateDashboard();
+                });
+            
+            // Real-time returns updates
+            db.collection(`sellers/${currentSeller}/returns`)
+                .onSnapshot((snapshot) => {
+                    returns = [];
+                    snapshot.forEach(doc => {
+                        returns.push({id: doc.id, ...doc.data()});
+                    });
+                    updateDashboard();
+                });
+            
+            // Real-time purchases updates
+            db.collection(`sellers/${currentSeller}/purchases`)
+                .onSnapshot((snapshot) => {
+                    purchases = [];
+                    snapshot.forEach(doc => {
+                        purchases.push({id: doc.id, ...doc.data()});
+                    });
+                    renderPurchasesTable();
+                });
         }
         
         function handleSellerSwitch() {
@@ -1475,21 +1447,40 @@
             } else {
                 showToast(`Switched to ${this.textContent}`);
             }
+            
+            // Reload data based on seller
+            loadInventory();
+            loadPurchases();
+            loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
         }
         
         function handleFeatureCardClick() {
             const targetView = this.getAttribute('data-target');
             showView(targetView);
+            
+            // Load data when switching to specific views
+            if(targetView === 'dashboard-view') {
+                loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+            } else if(targetView === 'purchase-view') {
+                loadPurchases();
+            }
         }
         
         function handleNavItemClick() {
             const targetView = this.getAttribute('data-target');
             showView(targetView);
+            
+            // Load data when switching to specific views
+            if(targetView === 'dashboard-view') {
+                loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+            } else if(targetView === 'purchase-view') {
+                loadPurchases();
+            }
         }
         
         function showView(viewId) {
             // Hide all views
-            Object.values(views).forEach(view => {
+            document.querySelectorAll('.view').forEach(view => {
                 view.classList.remove('active');
             });
             
@@ -1513,10 +1504,10 @@
         function handleBarcodeSubmit(e) {
             e.preventDefault();
             
-            const productName = document.getElementById('product-name').value;
-            const size = document.getElementById('product-size').value;
-            const color = document.getElementById('product-color').value;
-            const profitMargin = document.getElementById('profit-margin').value;
+            const productName = document.getElementById('product-name').value.trim();
+            const size = document.getElementById('product-size').value.trim();
+            const color = document.getElementById('product-color').value.trim();
+            const profitMargin = document.getElementById('profit-margin').value.trim();
             
             if (!productName || !size || !color || !profitMargin) {
                 showToast('Please fill all fields');
@@ -1527,127 +1518,276 @@
             const barcodeValue = `${productName}.${size}.${color}`;
             generateBarcode(barcodeValue);
             
-            // Show download and save buttons
-            document.getElementById('download-barcode').style.display = 'block';
-            document.getElementById('save-barcode').style.display = 'block';
+            // Show result container
+            document.getElementById('barcode-result').style.display = 'block';
         }
         
         function generateBarcode(value) {
             JsBarcode("#barcode", value, {
                 format: "CODE128",
                 displayValue: true,
-                fontSize: 16,
+                fontSize: 14,
                 height: 50,
                 margin: 10,
-                width: 2
+                width: 2,
+                lineColor: "#000",
+                background: "#fff"
             });
         }
         
         function downloadBarcode() {
             const svgElement = document.getElementById('barcode');
             const svgData = new XMLSerializer().serializeToString(svgElement);
-            const blob = new Blob([svgData], {type: "image/svg+xml"});
-            const url = URL.createObjectURL(blob);
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `barcode_${new Date().getTime()}.svg`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const pngFile = canvas.toDataURL("image/png");
+                const downloadLink = document.createElement("a");
+                downloadLink.download = `barcode_${new Date().getTime()}.png`;
+                downloadLink.href = pngFile;
+                downloadLink.click();
+            };
             
+            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
             showToast('Barcode downloaded!');
         }
         
         function saveToInventory() {
-            const productName = document.getElementById('product-name').value;
-            const size = document.getElementById('product-size').value;
-            const color = document.getElementById('product-color').value;
-            const profitMargin = document.getElementById('profit-margin').value;
+            const productName = document.getElementById('product-name').value.trim();
+            const size = document.getElementById('product-size').value.trim();
+            const color = document.getElementById('product-color').value.trim();
+            const profitMargin = parseFloat(document.getElementById('profit-margin').value);
             
-            if (!productName || !size || !color || !profitMargin) {
+            if (!productName || !size || !color || isNaN(profitMargin)) {
                 showToast('Please generate barcode first');
                 return;
             }
             
-            // Add to inventory list
-            const inventoryList = document.getElementById('inventory-list');
-            const newItem = document.createElement('div');
-            newItem.className = 'inventory-item';
-            newItem.innerHTML = `
-                <div class="item-info">
-                    <h4>${productName}.${size}.${color}</h4>
-                    <p>Profit: ₹${profitMargin} per unit</p>
-                </div>
-                <div class="stock-control">
-                    <div class="stock-btn minus">-</div>
-                    <input type="number" class="stock-input" value="0" min="0">
-                    <div class="stock-btn plus">+</div>
-                </div>
-            `;
+            // Add to Firestore
+            const productId = `${productName}-${size}-${color}`.toLowerCase().replace(/\s+/g, '_');
             
-            inventoryList.appendChild(newItem);
-            showToast('Product added to inventory!');
+            db.collection(`sellers/${currentSeller}/products`).doc(productId).set({
+                name: productName,
+                size: size,
+                color: color,
+                profit: profitMargin,
+                barcode: `${productName}.${size}.${color}`,
+                stock: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                showToast('Product saved to inventory!');
+                document.getElementById('barcode-form').reset();
+                document.getElementById('barcode-result').style.display = 'none';
+            })
+            .catch(error => {
+                console.error("Error saving product: ", error);
+                showToast('Error saving product');
+            });
+        }
+        
+        function loadInventory() {
+            const inventoryList = document.getElementById('inventory-list');
+            inventoryList.innerHTML = '<div class="empty-state"><i>⏳</i><h3>Loading inventory...</h3></div>';
+            
+            db.collection(`sellers/${currentSeller}/products`).get()
+            .then(snapshot => {
+                products = [];
+                snapshot.forEach(doc => {
+                    products.push({id: doc.id, ...doc.data()});
+                });
+                renderInventory();
+            })
+            .catch(error => {
+                console.error("Error loading inventory: ", error);
+                inventoryList.innerHTML = '<div class="empty-state"><i>⚠️</i><h3>Error loading inventory</h3><p>Please try again later</p></div>';
+            });
+        }
+        
+        function renderInventory() {
+            const inventoryList = document.getElementById('inventory-list');
+            
+            if(products.length === 0) {
+                inventoryList.innerHTML = '<div class="empty-state"><i>📦</i><h3>No products in inventory</h3><p>Add products using the barcode generator</p></div>';
+                return;
+            }
+            
+            inventoryList.innerHTML = '';
+            
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.className = 'inventory-item';
+                item.dataset.id = product.id;
+                item.innerHTML = `
+                    <div class="item-info">
+                        <h4>${product.name}.${product.size}.${product.color}</h4>
+                        <p>Profit: ₹${product.profit} per unit | Stock: ${product.stock}</p>
+                    </div>
+                    <div class="stock-control">
+                        <button class="stock-btn minus">-</button>
+                        <input type="number" class="stock-input" value="${product.stock}" min="0">
+                        <button class="stock-btn plus">+</button>
+                    </div>
+                    <button class="delete-item">×</button>
+                `;
+                
+                // Add event listeners
+                item.querySelector('.minus').addEventListener('click', decrementStock);
+                item.querySelector('.plus').addEventListener('click', incrementStock);
+                item.querySelector('.stock-input').addEventListener('change', manualStockUpdate);
+                item.querySelector('.delete-item').addEventListener('click', deleteProduct);
+                
+                inventoryList.appendChild(item);
+            });
+        }
+        
+        function decrementStock() {
+            const input = this.parentElement.querySelector('.stock-input');
+            let count = parseInt(input.value);
+            if (count > 0) {
+                count--;
+                input.value = count;
+            }
+        }
+        
+        function incrementStock() {
+            const input = this.parentElement.querySelector('.stock-input');
+            let count = parseInt(input.value);
+            count++;
+            input.value = count;
+        }
+        
+        function manualStockUpdate() {
+            let value = parseInt(this.value);
+            if (isNaN(value) || value < 0) {
+                this.value = 0;
+            }
+        }
+        
+        function deleteProduct() {
+            const item = this.closest('.inventory-item');
+            const productId = item.dataset.id;
+            
+            if(confirm("Are you sure you want to delete this product?")) {
+                db.collection(`sellers/${currentSeller}/products`).doc(productId).delete()
+                .then(() => {
+                    showToast('Product deleted successfully!');
+                })
+                .catch(error => {
+                    console.error("Error deleting product: ", error);
+                    showToast('Error deleting product');
+                });
+            }
+        }
+        
+        function updateInventory() {
+            const items = document.querySelectorAll('.inventory-item');
+            const updates = [];
+            
+            items.forEach(item => {
+                const productId = item.dataset.id;
+                const stockValue = parseInt(item.querySelector('.stock-input').value);
+                
+                updates.push(
+                    db.collection(`sellers/${currentSeller}/products`).doc(productId).update({
+                        stock: stockValue
+                    })
+                );
+            });
+            
+            Promise.all(updates)
+            .then(() => {
+                showToast('All inventory updated!');
+            })
+            .catch(error => {
+                console.error("Error updating inventory: ", error);
+                showToast('Error updating some items');
+            });
         }
         
         function startScanner() {
-            const scannerContainer = document.querySelector('.scanner-container');
             const video = document.getElementById('scanner-video');
             
-            // Request camera access
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(function(stream) {
-                    video.srcObject = stream;
-                    video.play();
-                    scannerActive = true;
-                    
-                    // Show scanner controls
-                    document.getElementById('start-scanning').style.display = 'none';
-                    document.getElementById('stop-scanning').style.display = 'block';
-                    document.getElementById('scanned-result').style.display = 'none';
-                    
-                    // Initialize Quagga for barcode scanning
-                    Quagga.init({
-                        inputStream: {
-                            name: "Live",
-                            type: "LiveStream",
-                            target: video,
-                            constraints: {
-                                facingMode: "environment"
-                            }
-                        },
-                        decoder: {
-                            readers: ["code_128_reader"]
-                        }
-                    }, function(err) {
-                        if (err) {
-                            console.error(err);
-                            showToast('Scanner initialization error');
-                            return;
-                        }
-                        
-                        Quagga.start();
-                        
-                        // Detect when a barcode is found
-                        Quagga.onDetected(function(result) {
-                            const code = result.codeResult.code;
-                            document.getElementById('scanned-product').value = code;
-                            document.getElementById('scanned-result').style.display = 'block';
-                            
-                            // Play beep sound
-                            playBeepSound();
-                        });
-                    });
-                })
-                .catch(function(err) {
-                    console.error("Error accessing camera: ", err);
-                    showToast('Camera access denied');
-                });
-            } else {
-                showToast('Camera not supported on this device');
+            // Clear any existing stream
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
             }
+
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                scannerActive = true;
+
+                // Show/hide proper buttons
+                document.getElementById('start-scanning').style.display = 'none';
+                document.getElementById('stop-scanning').style.display = 'block';
+                document.getElementById('scanned-result').style.display = 'none';
+
+                // Initialize Quagga
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            width: 640,
+                            height: 480,
+                            facingMode: "environment"
+                        },
+                    },
+                    decoder: {
+                        readers: ["code_128_reader"],
+                        debug: {
+                            showCanvas: false,
+                            showPatches: false,
+                            showFoundPatches: false,
+                            showSkeleton: false,
+                            showLabels: false,
+                            showPatchLabels: false,
+                            showRemainingPatchLabels: false,
+                            boxFromPatches: {
+                                showTransformed: false,
+                                showTransformedBox: false,
+                                showBB: false
+                            }
+                        }
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        console.error(err);
+                        showToast('Scanner initialization error');
+                        return;
+                    }
+                    
+                    Quagga.start();
+                    
+                    // Detect when a barcode is found
+                    Quagga.onDetected(function(result) {
+                        const code = result.codeResult.code;
+                        document.getElementById('scanned-product').value = code;
+                        document.getElementById('scanned-result').style.display = 'block';
+                        
+                        // Play beep sound
+                        playBeepSound();
+                    });
+                });
+            })
+            .catch(function(err) {
+                console.error("Error accessing camera: ", err);
+                showToast('Camera access denied or not supported');
+            });
         }
         
         function stopScanner() {
@@ -1655,8 +1795,7 @@
             const stream = video.srcObject;
             
             if (stream) {
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
+                stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
             }
             
@@ -1672,17 +1811,57 @@
         }
         
         function confirmOrder() {
-            const product = document.getElementById('scanned-product').value;
-            const quantity = document.getElementById('order-quantity').value;
+            const productBarcode = document.getElementById('scanned-product').value.trim();
+            const quantity = parseInt(document.getElementById('order-quantity').value);
             
-            if (!product || !quantity) {
-                showToast('Please scan a product and enter quantity');
+            if (!productBarcode || !quantity || quantity < 1) {
+                showToast('Please scan a product and enter valid quantity');
                 return;
             }
             
-            // Process order
-            showToast(`Order processed: ${quantity} x ${product}`);
-            stopScanner();
+            // Find product in inventory
+            const product = products.find(p => p.barcode === productBarcode);
+            if (!product) {
+                showToast('Product not found in inventory');
+                return;
+            }
+            
+            if (product.stock < quantity) {
+                showToast('Not enough stock available');
+                return;
+            }
+            
+            // Create order
+            const order = {
+                productId: product.id,
+                productName: product.name,
+                size: product.size,
+                color: product.color,
+                quantity: quantity,
+                profit: product.profit * quantity,
+                seller: currentSeller,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Save to Firestore
+            db.collection(`sellers/${currentSeller}/orders`).add(order)
+            .then(() => {
+                // Update inventory
+                const newStock = product.stock - quantity;
+                return db.collection(`sellers/${currentSeller}/products`).doc(product.id).update({
+                    stock: newStock
+                });
+            })
+            .then(() => {
+                showToast(`Order processed: ${quantity} x ${productBarcode}`);
+                playBeepSound();
+                stopScanner();
+                document.getElementById('order-quantity').value = 1;
+            })
+            .catch(error => {
+                console.error("Error processing order: ", error);
+                showToast('Error processing order');
+            });
         }
         
         function handleReturnTabClick() {
@@ -1696,88 +1875,169 @@
             });
             
             // Show selected section
-            if(tab === 'customer') {
-                document.getElementById('customer-return-section').style.display = 'block';
-            } else if(tab === 'rto') {
-                document.getElementById('rto-return-section').style.display = 'block';
-            } else if(tab === 'rescan') {
-                document.getElementById('rescan-section').style.display = 'block';
-            }
+            document.getElementById(`${tab}-return-section`).style.display = 'block';
         }
         
         function processCustomerReturn() {
-            // Show confirmation popup
-            document.getElementById('confirmation-popup').classList.add('active');
+            const courier = document.getElementById('return-courier').value;
+            const quantity = parseInt(document.getElementById('customer-return-qty').value);
+            const wrongReturns = parseInt(document.getElementById('wrong-return-qty').value);
+            const claims = parseInt(document.getElementById('claims-received').value);
+            const compensation = parseFloat(document.getElementById('compensation-amount').value);
             
-            // Play beep sound
-            playBeepSound();
+            if (!courier || !quantity || quantity < 1) {
+                showToast('Please select a courier and enter valid quantity');
+                return;
+            }
+            
+            // Get charge for this courier
+            const courierData = couriers.find(c => c.id === courier);
+            const charge = courierData ? courierData.charge : 0;
+            
+            // Create return record
+            const returnData = {
+                type: "customer",
+                courier: courier,
+                quantity: quantity,
+                wrongReturns: wrongReturns,
+                claims: claims,
+                compensation: compensation,
+                charge: charge * quantity,
+                seller: currentSeller,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Save to Firestore
+            db.collection(`sellers/${currentSeller}/returns`).add(returnData)
+            .then(() => {
+                showConfirmation();
+                playBeepSound();
+                showToast(`Processed ${quantity} customer returns`);
+                
+                // Reset form
+                document.getElementById('customer-return-qty').value = 1;
+                document.getElementById('wrong-return-qty').value = 0;
+                document.getElementById('claims-received').value = 0;
+                document.getElementById('compensation-amount').value = 0;
+            })
+            .catch(error => {
+                console.error("Error saving return: ", error);
+                showToast('Error processing return');
+            });
         }
         
         function processRtoReturn() {
-            // Show confirmation popup
-            document.getElementById('confirmation-popup').classList.add('active');
+            const courier = document.getElementById('rto-courier').value;
+            const quantity = parseInt(document.getElementById('rto-return-qty').value);
             
-            // Play beep sound
-            playBeepSound();
+            if (!courier || !quantity || quantity < 1) {
+                showToast('Please select a courier and enter valid quantity');
+                return;
+            }
+            
+            // Create return record (no charge for RTO)
+            const returnData = {
+                type: "rto",
+                courier: courier,
+                quantity: quantity,
+                seller: currentSeller,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Save to Firestore
+            db.collection(`sellers/${currentSeller}/returns`).add(returnData)
+            .then(() => {
+                showConfirmation();
+                playBeepSound();
+                showToast(`Processed ${quantity} RTO returns`);
+                
+                // Reset form
+                document.getElementById('rto-return-qty').value = 1;
+            })
+            .catch(error => {
+                console.error("Error saving return: ", error);
+                showToast('Error processing return');
+            });
         }
         
         function startRescan() {
-            const rescanContainer = document.querySelector('#rescan-section .scanner-container');
             const video = document.getElementById('rescan-video');
             
-            // Request camera access
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(function(stream) {
-                    video.srcObject = stream;
-                    video.play();
-                    rescanActive = true;
-                    
-                    // Show scanner controls
-                    document.getElementById('start-rescan').style.display = 'none';
-                    document.getElementById('stop-rescan').style.display = 'block';
-                    document.getElementById('scanned-rescan-result').style.display = 'none';
-                    
-                    // Initialize Quagga for barcode scanning
-                    Quagga.init({
-                        inputStream: {
-                            name: "Live",
-                            type: "LiveStream",
-                            target: video,
-                            constraints: {
-                                facingMode: "environment"
-                            }
-                        },
-                        decoder: {
-                            readers: ["code_128_reader"]
-                        }
-                    }, function(err) {
-                        if (err) {
-                            console.error(err);
-                            showToast('Scanner initialization error');
-                            return;
-                        }
-                        
-                        Quagga.start();
-                        
-                        // Detect when a barcode is found
-                        Quagga.onDetected(function(result) {
-                            const code = result.codeResult.code;
-                            document.getElementById('rescan-product').value = code;
-                            document.getElementById('scanned-rescan-result').style.display = 'block';
-                            
-                            // Play beep sound
-                            playBeepSound();
-                        });
-                    });
-                })
-                .catch(function(err) {
-                    console.error("Error accessing camera: ", err);
-                    showToast('Camera access denied');
-                });
-            } else {
-                showToast('Camera not supported on this device');
+            // Clear any existing stream
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
             }
+
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                rescanActive = true;
+
+                // Show/hide proper buttons
+                document.getElementById('start-rescan').style.display = 'none';
+                document.getElementById('stop-rescan').style.display = 'block';
+                document.getElementById('scanned-rescan-result').style.display = 'none';
+
+                // Initialize Quagga
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            width: 640,
+                            height: 480,
+                            facingMode: "environment"
+                        },
+                    },
+                    decoder: {
+                        readers: ["code_128_reader"],
+                        debug: {
+                            showCanvas: false,
+                            showPatches: false,
+                            showFoundPatches: false,
+                            showSkeleton: false,
+                            showLabels: false,
+                            showPatchLabels: false,
+                            showRemainingPatchLabels: false,
+                            boxFromPatches: {
+                                showTransformed: false,
+                                showTransformedBox: false,
+                                showBB: false
+                            }
+                        }
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        console.error(err);
+                        showToast('Scanner initialization error');
+                        return;
+                    }
+                    
+                    Quagga.start();
+                    
+                    // Detect when a barcode is found
+                    Quagga.onDetected(function(result) {
+                        const code = result.codeResult.code;
+                        document.getElementById('rescan-product').value = code;
+                        document.getElementById('scanned-rescan-result').style.display = 'block';
+                        
+                        // Play beep sound
+                        playBeepSound();
+                    });
+                });
+            })
+            .catch(function(err) {
+                console.error("Error accessing camera: ", err);
+                showToast('Camera access denied or not supported');
+            });
         }
         
         function stopRescan() {
@@ -1785,8 +2045,7 @@
             const stream = video.srcObject;
             
             if (stream) {
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
+                stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
             }
             
@@ -1802,20 +2061,50 @@
         }
         
         function confirmRescan() {
-            const product = document.getElementById('rescan-product').value;
-            const quantity = document.getElementById('rescan-quantity').value;
+            const productBarcode = document.getElementById('rescan-product').value.trim();
+            const quantity = parseInt(document.getElementById('rescan-quantity').value);
             
-            if (!product || !quantity) {
-                showToast('Please scan a product and enter quantity');
+            if (!productBarcode || !quantity || quantity < 1) {
+                showToast('Please scan a product and enter valid quantity');
                 return;
             }
             
-            // Process rescan
-            showToast(`Added to inventory: ${quantity} x ${product}`);
-            stopRescan();
+            // Find product in inventory
+            const product = products.find(p => p.barcode === productBarcode);
+            if (!product) {
+                showToast('Product not found in inventory');
+                return;
+            }
+            
+            // Update inventory
+            const newStock = product.stock + quantity;
+            db.collection(`sellers/${currentSeller}/products`).doc(product.id).update({
+                stock: newStock
+            })
+            .then(() => {
+                showToast(`Added ${quantity} items to inventory: ${productBarcode}`);
+                playBeepSound();
+                document.getElementById('rescan-quantity').value = 1;
+            })
+            .catch(error => {
+                console.error("Error updating stock: ", error);
+                showToast('Error adding to inventory');
+            });
         }
         
         function showChargesModal() {
+            const chargeConfig = document.getElementById('charge-config');
+            chargeConfig.innerHTML = '';
+            
+            couriers.forEach(courier => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="charge-label">${courier.name}</div>
+                    <input type="number" class="charge-input" value="${courier.charge}" data-id="${courier.id}" min="0" step="0.01">
+                `;
+                chargeConfig.appendChild(div);
+            });
+            
             document.getElementById('charges-modal').classList.add('active');
         }
         
@@ -1823,15 +2112,62 @@
             document.getElementById('charges-modal').classList.remove('active');
         }
         
+        function saveCharges() {
+            const inputs = document.querySelectorAll('.charge-input');
+            inputs.forEach(input => {
+                const courierId = input.dataset.id;
+                const charge = parseFloat(input.value);
+                
+                // Find courier and update
+                const courier = couriers.find(c => c.id === courierId);
+                if(courier) {
+                    courier.charge = charge;
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('courierCharges', JSON.stringify(couriers));
+            
+            hideChargesModal();
+            showToast('Courier charges updated!');
+        }
+        
+        function addCourier() {
+            const name = prompt("Enter courier name:");
+            if (!name) return;
+            
+            const id = name.toLowerCase().replace(/\s+/g, '_');
+            const colors = ['sf', 'ec', 'dl', 'vm'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const newCourier = {
+                id: id,
+                name: name,
+                color: randomColor,
+                charge: 25
+            };
+            
+            couriers.push(newCourier);
+            
+            // Add to the UI
+            const chargeConfig = document.getElementById('charge-config');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <div class="charge-label">${name}</div>
+                <input type="number" class="charge-input" value="25" data-id="${id}" min="0" step="0.01">
+            `;
+            chargeConfig.appendChild(div);
+        }
+        
         function addPurchaseItem() {
             const container = document.getElementById('purchase-items');
             const newItem = document.createElement('div');
             newItem.className = 'purchase-item';
             newItem.innerHTML = `
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" class="form-control" placeholder="Item name" style="flex: 2;">
-                    <input type="number" class="form-control" placeholder="Qty" min="1" style="flex: 1;">
-                    <input type="number" class="form-control" placeholder="Price (₹)" min="0" step="0.01" style="flex: 1;">
+                <div class="item-row">
+                    <input type="text" class="form-control item-name" placeholder="Item name">
+                    <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
+                    <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
                 </div>
             `;
             container.appendChild(newItem);
@@ -1839,13 +2175,280 @@
         
         function savePurchase(e) {
             e.preventDefault();
-            showToast('Purchase saved successfully!');
+            
+            const vendor = document.getElementById('vendor-name').value.trim();
+            const date = document.getElementById('purchase-date').value;
+            const total = parseFloat(document.getElementById('total-amount').value);
+            
+            if (!vendor || !date || isNaN(total)) {
+                showToast('Please fill all required fields');
+                return;
+            }
+            
+            // Collect items
+            const items = [];
+            document.querySelectorAll('.purchase-item').forEach(item => {
+                const name = item.querySelector('.item-name').value.trim();
+                const qty = parseInt(item.querySelector('.item-qty').value);
+                const price = parseFloat(item.querySelector('.item-price').value);
+                
+                if (name && qty > 0 && price > 0) {
+                    items.push({ name, qty, price });
+                }
+            });
+            
+            if (items.length === 0) {
+                showToast('Please add at least one valid item');
+                return;
+            }
+            
+            // Create purchase record
+            const purchase = {
+                vendor: vendor,
+                date: date,
+                items: items,
+                total: total,
+                seller: currentSeller,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Save to Firestore
+            db.collection(`sellers/${currentSeller}/purchases`).add(purchase)
+            .then(() => {
+                showToast('Purchase saved successfully!');
+                document.getElementById('purchase-form').reset();
+                
+                // Reset items
+                document.getElementById('purchase-items').innerHTML = `
+                    <div class="purchase-item">
+                        <div class="item-row">
+                            <input type="text" class="form-control item-name" placeholder="Item name">
+                            <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
+                            <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error("Error saving purchase: ", error);
+                showToast('Error saving purchase');
+            });
+        }
+        
+        function loadPurchases() {
+            const tableBody = document.querySelector('#purchases-table tbody');
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Loading...</td></tr>';
+            
+            db.collection(`sellers/${currentSeller}/purchases`).orderBy('timestamp', 'desc').limit(5).get()
+            .then(snapshot => {
+                renderPurchasesTable(snapshot);
+            })
+            .catch(error => {
+                console.error("Error loading purchases: ", error);
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Error loading purchases</td></tr>';
+            });
+        }
+        
+        function renderPurchasesTable(snapshot) {
+            const tableBody = document.querySelector('#purchases-table tbody');
+            
+            if(snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No purchases found</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const purchase = doc.data();
+                const date = purchase.timestamp ? new Date(purchase.timestamp.seconds * 1000) : new Date();
+                const formattedDate = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${purchase.vendor}</td>
+                    <td>${purchase.items.length} items</td>
+                    <td>₹${purchase.total.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function handleDashboardFilter() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const period = this.dataset.period;
+            
+            loadDashboardData(period);
+        }
+        
+        function initCharts() {
+            const salesCtx = document.getElementById('sales-chart').getContext('2d');
+            const profitCtx = document.getElementById('profit-chart').getContext('2d');
+            
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Sales',
+                        data: [],
+                        backgroundColor: 'rgba(111, 66, 193, 0.2)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            profitChart = new Chart(profitCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Profit',
+                            data: [],
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: 'rgba(40, 167, 69, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Loss',
+                            data: [],
+                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                            borderColor: 'rgba(220, 53, 69, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function loadDashboardData(period) {
+            // In a real implementation, we would fetch data based on the period
+            // For demo purposes, we'll use the existing orders and returns data
+            
+            updateDashboard();
+        }
+        
+        function updateDashboard() {
+            // Calculate totals
+            const totalOrders = orders.reduce((sum, order) => sum + order.quantity, 0);
+            const totalReturns = returns.reduce((sum, ret) => sum + ret.quantity, 0);
+            const totalProfit = orders.reduce((sum, order) => sum + order.profit, 0);
+            const totalCharges = returns.reduce((sum, ret) => sum + (ret.charge || 0), 0);
+            
+            // Update UI
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('total-returns').textContent = totalReturns;
+            document.getElementById('net-profit').textContent = `₹${totalProfit.toFixed(2)}`;
+            document.getElementById('return-charges').textContent = `₹${totalCharges.toFixed(2)}`;
+            
+            // Update charts with sample data
+            updateCharts();
+            
+            // Update top products table
+            updateTopProducts();
+        }
+        
+        function updateCharts() {
+            // Sample data for charts
+            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const salesData = [12, 19, 15, 22, 18, 25, 30];
+            const profitData = [1200, 1900, 1500, 2200, 1800, 2500, 3000];
+            const lossData = [200, 300, 150, 400, 250, 100, 350];
+            
+            // Update sales chart
+            salesChart.data.labels = labels;
+            salesChart.data.datasets[0].data = salesData;
+            salesChart.update();
+            
+            // Update profit chart
+            profitChart.data.labels = labels;
+            profitChart.data.datasets[0].data = profitData;
+            profitChart.data.datasets[1].data = lossData;
+            profitChart.update();
+        }
+        
+        function updateTopProducts() {
+            const tableBody = document.querySelector('#top-products tbody');
+            
+            // Group orders by product
+            const productStats = {};
+            orders.forEach(order => {
+                if (!productStats[order.productId]) {
+                    productStats[order.productId] = {
+                        name: `${order.productName}.${order.size}.${order.color}`,
+                        orders: 0,
+                        returns: 0,
+                        profit: 0
+                    };
+                }
+                productStats[order.productId].orders += order.quantity;
+                productStats[order.productId].profit += order.profit;
+            });
+            
+            // Group returns by product (if we had product info in returns)
+            
+            // Convert to array and sort by profit
+            const topProducts = Object.values(productStats)
+                .sort((a, b) => b.profit - a.profit)
+                .slice(0, 5);
+            
+            // Update table
+            tableBody.innerHTML = '';
+            topProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.orders}</td>
+                    <td>${product.returns}</td>
+                    <td class="profit">₹${product.profit.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            if (topProducts.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No sales data available</td></tr>';
+            }
+        }
+        
+        function showConfirmation() {
+            document.getElementById('confirmation-popup').classList.add('active');
         }
         
         function playBeepSound() {
-            // In a real app, this would play an actual beep sound
-            // For this demo, we'll just log to console
-            console.log("Beep sound played");
+            const beep = document.getElementById('beep-sound');
+            beep.currentTime = 0;
+            beep.play().catch(e => console.log("Beep sound play error:", e));
         }
         
         function showToast(message) {
