@@ -1690,6 +1690,63 @@
             });
         }
         
+        
+        // Improved scanner initialization function
+        function initQuagga(videoElement, onDetectCallback) {
+            return Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: videoElement,
+                    constraints: {
+                        facingMode: "environment",
+                        // Optimal resolution for barcode scanning
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 },
+                        aspectRatio: { min: 1, max: 2 }
+                    },
+                    area: { // Define the scanning area
+                        top: "25%",
+                        right: "10%",
+                        left: "10%",
+                        bottom: "25%"
+                    }
+                },
+                decoder: {
+                    readers: ["code_128_reader"],
+                    debug: {
+                        drawBoundingBox: false,
+                        showFrequency: false,
+                        drawScanline: false,
+                        showPattern: false
+                    },
+                    multiple: false
+                },
+                locator: {
+                    patchSize: "medium", // Optimized for scanning speed
+                    halfSample: true
+                },
+                locate: true,
+                frequency: 10, // Higher frequency for faster scanning
+                numOfWorkers: navigator.hardwareConcurrency || 4 // Use available cores
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    showToast('Scanner initialization error');
+                    return;
+                }
+                
+                Quagga.start();
+                
+                // Detect when a barcode is found
+                Quagga.onDetected(function(result) {
+                    const code = result.codeResult.code;
+                    onDetectCallback(code);
+                });
+            });
+        }
+        
+        // Updated startScanner function
         function startScanner() {
             const video = document.getElementById('scanner-video');
             
@@ -1701,8 +1758,8 @@
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
                     facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 }
                 } 
             }).then(function(stream) {
                 video.srcObject = stream;
@@ -1714,59 +1771,141 @@
                 document.getElementById('stop-scanning').style.display = 'block';
                 document.getElementById('scanned-result').style.display = 'none';
 
-                // Initialize Quagga
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: video,
-                        constraints: {
-                            width: 640,
-                            height: 480,
-                            facingMode: "environment"
-                        },
-                    },
-                    decoder: {
-                        readers: ["code_128_reader"],
-                        debug: {
-                            showCanvas: false,
-                            showPatches: false,
-                            showFoundPatches: false,
-                            showSkeleton: false,
-                            showLabels: false,
-                            showPatchLabels: false,
-                            showRemainingPatchLabels: false,
-                            boxFromPatches: {
-                                showTransformed: false,
-                                showTransformedBox: false,
-                                showBB: false
-                            }
+                // Add laser animation to overlay
+                const overlay = document.querySelector('.scanner-overlay');
+                overlay.innerHTML = `
+                    <div class="scanner-frame">
+                        <div class="scanner-laser"></div>
+                        <div class="scanner-hint">Align barcode inside the frame</div>
+                    </div>
+                    <div class="focus-indicator">Tap to focus</div>
+                `;
+                
+                // Add tap-to-focus functionality
+                video.addEventListener('click', function() {
+                    // Try to focus on the tapped position
+                    if ('getTrackCapabilities' in stream.getVideoTracks()[0]) {
+                        const track = stream.getVideoTracks()[0];
+                        if (track.getCapabilities().focusMode.includes('manual')) {
+                            const settings = track.getSettings();
+                            const capabilities = track.getCapabilities();
+                            
+                            // Calculate relative position
+                            const rect = video.getBoundingClientRect();
+                            const x = (event.clientX - rect.left) / rect.width;
+                            const y = (event.clientY - rect.top) / rect.height;
+                            
+                            // Apply manual focus
+                            track.applyConstraints({
+                                advanced: [{
+                                    focusMode: 'manual',
+                                    focusDistance: 0.2,
+                                    pointsOfInterest: [{x: x, y: y}]
+                                }]
+                            });
+                            
+                            showToast('Focus adjusted');
                         }
-                    },
-                    locate: true
-                }, function(err) {
-                    if (err) {
-                        console.error(err);
-                        showToast('Scanner initialization error');
-                        return;
                     }
+                });
+
+                // Initialize Quagga with optimized settings
+                initQuagga(video, function(code) {
+                    document.getElementById('scanned-product').value = code;
+                    document.getElementById('scanned-result').style.display = 'block';
                     
-                    Quagga.start();
-                    
-                    // Detect when a barcode is found
-                    Quagga.onDetected(function(result) {
-                        const code = result.codeResult.code;
-                        document.getElementById('scanned-product').value = code;
-                        document.getElementById('scanned-result').style.display = 'block';
-                        
-                        // Play beep sound
-                        playBeepSound();
-                    });
+                    // Play beep sound
+                    playBeepSound();
                 });
             })
             .catch(function(err) {
                 console.error("Error accessing camera: ", err);
                 showToast('Camera access denied or not supported');
+            });
+        }
+        
+        // Updated startRescan function
+        function startRescan() {
+            const video = document.getElementById('rescan-video');
+            
+            // First check if scanner is already active
+            if (rescanActive) return;
+            
+            // Clear any existing stream
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 }
+                } 
+            }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                rescanActive = true;
+
+                // Show/hide proper buttons
+                document.getElementById('start-rescan').style.display = 'none';
+                document.getElementById('stop-rescan').style.display = 'block';
+                document.getElementById('scanned-rescan-result').style.display = 'none';
+
+                // Add laser animation to overlay
+                const overlay = document.querySelector('.scanner-overlay');
+                overlay.innerHTML = `
+                    <div class="scanner-frame">
+                        <div class="scanner-laser"></div>
+                        <div class="scanner-hint">Align barcode inside the frame</div>
+                    </div>
+                    <div class="focus-indicator">Tap to focus</div>
+                `;
+                
+                // Add tap-to-focus functionality
+                video.addEventListener('click', function() {
+                    // Try to focus on the tapped position
+                    if ('getTrackCapabilities' in stream.getVideoTracks()[0]) {
+                        const track = stream.getVideoTracks()[0];
+                        if (track.getCapabilities().focusMode.includes('manual')) {
+                            const settings = track.getSettings();
+                            const capabilities = track.getCapabilities();
+                            
+                            // Calculate relative position
+                            const rect = video.getBoundingClientRect();
+                            const x = (event.clientX - rect.left) / rect.width;
+                            const y = (event.clientY - rect.top) / rect.height;
+                            
+                            // Apply manual focus
+                            track.applyConstraints({
+                                advanced: [{
+                                    focusMode: 'manual',
+                                    focusDistance: 0.2,
+                                    pointsOfInterest: [{x: x, y: y}]
+                                }]
+                            });
+                            
+                            showToast('Focus adjusted');
+                        }
+                    }
+                });
+
+                // Initialize Quagga with optimized settings
+                initQuagga(video, function(code) {
+                    document.getElementById('rescan-product').value = code;
+                    document.getElementById('scanned-rescan-result').style.display = 'block';
+                    
+                    // Play beep sound
+                    playBeepSound();
+                    
+                    // Auto-focus on quantity field
+                    document.getElementById('rescan-quantity').focus();
+                });
+            })
+            .catch(function(err) {
+                console.error("Error accessing camera: ", err);
+                showToast('Camera access denied or not supported');
+                stopRescan();
             });
         }
         
