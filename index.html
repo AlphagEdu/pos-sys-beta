@@ -8,7 +8,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <!-- Using jsQR library for QR code scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
     <style>
         :root {
             --primary: #6f42c1;
@@ -73,6 +76,89 @@
             justify-content: center;
             gap: 12px;
             margin-top: 12px;
+        }
+
+
+        /* Scanner container with fixed aspect ratio */
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            padding-top: 75%; /* 4:3 aspect ratio */
+            background: black;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .scanner-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Scanner overlay with guide */
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+       .scanner-frame {
+        width: 70%;
+        aspect-ratio: 1/1; /* Perfect square */
+        border: 4px solid rgba(0, 255, 0, 0.5);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1000px rgba(0,0,0,0.7);
+       }
+        
+        .scanner-guide {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .scanner-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+        
+        /* Focus indicator */
+        .focus-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 20;
         }
 
         .seller-btn {
@@ -943,45 +1029,52 @@
             
             <!-- Barcode Generator View -->
             <div id="barcode-view" class="view">
-                <div class="view-header">
-                    <div class="back-btn">←</div>
-                    <h2 class="view-title">Barcode Generator</h2>
-                </div>
-                
-                <form id="barcode-form">
-                    <div class="form-group">
-                        <label for="product-name">Product Name</label>
-                        <input type="text" id="product-name" class="form-control" placeholder="Enter product name" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product-size">Size</label>
-                        <input type="text" id="product-size" class="form-control" placeholder="Enter size" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product-color">Color</label>
-                        <input type="text" id="product-color" class="form-control" placeholder="Enter color" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="profit-margin">Profit Margin (₹)</label>
-                        <input type="number" id="profit-margin" class="form-control" placeholder="Enter profit in rupees" min="0" step="0.01" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Generate Barcode</button>
-                </form>
-                
-                <div class="barcode-container" id="barcode-result" style="display:none;">
-                    <h3>Your Product Barcode</h3>
-                    <svg id="barcode"></svg>
-                    <div class="barcode-actions">
-                        <button id="download-barcode" class="btn btn-primary">Download</button>
-                        <button id="save-barcode" class="btn btn-secondary">Save to Inventory</button>
-                    </div>
-                </div>
-            </div>
-            
+    <div class="view-header">
+        <div class="back-btn">←</div>
+        <h2 class="view-title">QR Code Generator</h2>
+    </div>
+    
+    <form id="barcode-form">
+        <div class="form-group">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" class="form-control" placeholder="Enter product name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="product-size">Size</label>
+            <input type="text" id="product-size" class="form-control" placeholder="Enter size" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="product-color">Color</label>
+            <input type="text" id="product-color" class="form-control" placeholder="Enter color" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="profit-margin">Profit Margin (₹)</label>
+            <input type="number" id="profit-margin" class="form-control" placeholder="Enter profit in rupees" min="0" step="0.01" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Generate QR Code</button>
+    </form>
+    
+     <div class="barcode-container" id="barcode-result" style="display:none;">
+        <div id="qr-display-container" style="display:flex;background:white;padding:15px;border-radius:8px;">
+    <canvas id="qrcode-canvas" style="width:2in;height:2in;"></canvas>
+    <div style="margin-left:20px;font-weight:bold;">
+        <div>Name: <span id="qr-name-display"></span></div>
+        <div>Size: <span id="qr-size-display"></span></div>
+        <div>Color: <span id="qr-color-display"></span></div>
+        <div>Profit: ₹<span id="qr-profit-display"></span></div>
+    </div>
+</div>
+        <div class="barcode-actions">
+            <button id="download-barcode" class="btn btn-primary">Download QR Label</button>
+            <button id="save-barcode" class="btn btn-secondary">Save to Inventory</button>
+        </div>
+    </div>
+</div>
+
             <!-- Inventory Manager View -->
             <div id="inventory-view" class="view">
                 <div class="view-header">
@@ -1310,1345 +1403,1247 @@
         </audio>
     </div>
 
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAfi1U9EqEPsSII4f5oqJrnHuVZeK6IrEU",
-            authDomain: "seller-panel-4122b.firebaseapp.com",
-            projectId: "seller-panel-4122b",
-            storageBucket: "seller-panel-4122b.appspot.com",
-            messagingSenderId: "466140503943",
-            appId: "1:466140503943:web:d097604db592ec79fa3d22",
-            measurementId: "G-FCZ4WQ8S3R"
-        };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAfi1U9EqEPsSII4f5oqJrnHuVZeK6IrEU",
+        authDomain: "seller-panel-4122b.firebaseapp.com",
+        projectId: "seller-panel-4122b",
+        storageBucket: "seller-panel-4122b.appspot.com",
+        messagingSenderId: "466140503943",
+        appId: "1:466140503943:web:d097604db592ec79fa3d22",
+        measurementId: "G-FCZ4WQ8S3R"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // Current seller state
+    let currentSeller = "AAA";
+    let products = [];
+    let orders = [];
+    let returns = [];
+    let purchases = [];
+    let couriers = [
+        { id: "shadowfax", name: "Shadowfax", color: "sf", charge: 25 },
+        { id: "ecom", name: "Ecom", color: "ec", charge: 30 },
+        { id: "delhivery", name: "Delhivery", color: "dl", charge: 35 },
+        { id: "valmo", name: "Valmo", color: "vm", charge: 20 }
+    ];
+    let scannerActive = false;
+    let rescanActive = false;
+    let scanningInterval;
+    let canvasElement;
+    let canvasContext;
+    
+    // Initialize the app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create hidden canvas for QR scanning
+        canvasElement = document.createElement('canvas');
+        canvasContext = canvasElement.getContext('2d');
         
-        // Current seller state
-        let currentSeller = "AAA";
-        let products = [];
-        let orders = [];
-        let returns = [];
-        let purchases = [];
-        let couriers = [
-            { id: "shadowfax", name: "Shadowfax", color: "sf", charge: 25 },
-            { id: "ecom", name: "Ecom", color: "ec", charge: 30 },
-            { id: "delhivery", name: "Delhivery", color: "dl", charge: 35 },
-            { id: "valmo", name: "Valmo", color: "vm", charge: 20 }
-        ];
-        let scannerActive = false;
-        let rescanActive = false;
-        
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load courier charges from localStorage if available
-            const savedCharges = localStorage.getItem('courierCharges');
-            if(savedCharges) {
-                couriers = JSON.parse(savedCharges);
-            }
-
-            // Set up all event listeners
-            setupEventListeners();
-
-            // Load initial data
-            loadInventory();
-            loadPurchases();
-            loadDashboardData('daily');
-        });
-
-        function setupEventListeners() {
-            // Navigation
-            document.querySelectorAll('.seller-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.seller-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentSeller = this.getAttribute('data-seller');
-                    
-                    if(currentSeller === 'combined') {
-                        showToast('Showing combined data for both sellers');
-                    } else {
-                        showToast(`Switched to ${this.textContent}`);
-                    }
-                    
-                    // Reload seller-specific data
-                    loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
-                });
-            });
-            
-            document.querySelectorAll('.feature-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const targetView = this.getAttribute('data-target');
-                    showView(targetView);
-                    
-                    // Load data when switching to specific views
-                    if(targetView === 'dashboard-view') {
-                        loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
-                    } else if (targetView === 'inventory-view') {
-                        loadInventory();
-                    }
-                });
-            });
-            
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const targetView = this.getAttribute('data-target');
-                    showView(targetView);
-                    
-                    // Load data when switching to specific views
-                    if(targetView === 'dashboard-view') {
-                        loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
-                    } else if (targetView === 'inventory-view') {
-                        loadInventory();
-                    }
-                });
-            });
-            
-            document.querySelectorAll('.back-btn').forEach(btn => {
-                btn.addEventListener('click', () => showView('home-view'));
-            });
-            
-            // Barcode generation
-            document.getElementById('barcode-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                generateBarcodeFromForm();
-            });
-            
-            document.getElementById('download-barcode').addEventListener('click', downloadBarcode);
-            document.getElementById('save-barcode').addEventListener('click', saveToInventory);
-            
-            // Scanner
-            document.getElementById('start-scanning').addEventListener('click', startScanner);
-            document.getElementById('stop-scanning').addEventListener('click', stopScanner);
-            document.getElementById('confirm-order').addEventListener('click', confirmOrder);
-            
-            // Returns
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    const tab = this.getAttribute('data-tab');
-                    
-                    // Hide all sections
-                    document.querySelectorAll('.return-section').forEach(section => {
-                        section.style.display = 'none';
-                    });
-                    
-                    // Show selected section
-                    document.getElementById(`${tab}-return-section`).style.display = 'block';
-                });
-            });
-            
-            document.getElementById('process-customer-return').addEventListener('click', processCustomerReturn);
-            document.getElementById('process-rto-return').addEventListener('click', processRtoReturn);
-            
-            // Rescan
-            document.getElementById('start-rescan').addEventListener('click', startRescan);
-            document.getElementById('stop-rescan').addEventListener('click', stopRescan);
-            document.getElementById('confirm-rescan').addEventListener('click', confirmRescan);
-            
-            // Charges modal
-            document.getElementById('configure-charges').addEventListener('click', showChargesModal);
-            document.querySelector('.close-modal').addEventListener('click', hideChargesModal);
-            document.getElementById('save-charges').addEventListener('click', saveCharges);
-            document.getElementById('add-courier').addEventListener('click', addCourier);
-            
-            // Purchase history
-            document.getElementById('add-item').addEventListener('click', addPurchaseItem);
-            document.getElementById('purchase-form').addEventListener('submit', savePurchase);
-            
-            // Confirmation popup
-            document.getElementById('close-confirmation').addEventListener('click', () => {
-                document.getElementById('confirmation-popup').classList.remove('active');
-            });
-            
-            // Dashboard filters
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    loadDashboardData(this.dataset.period);
-                });
-            });
-            
-            // Update inventory
-            document.getElementById('update-inventory').addEventListener('click', updateInventory);
-            
-            // Reset all data button
-            document.getElementById('reset-all-btn').addEventListener('click', resetAllDataWithPassword);
-            
-            // View details buttons
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('view-details-btn')) {
-                    document.getElementById('daily-records').style.display = 'block';
-                    document.getElementById('records-title').textContent = 
-                        `${e.target.dataset.type === 'orders' ? 'Order' : 'Return'} Details`;
-                }
-            });
+        // Load courier charges from localStorage if available
+        const savedCharges = localStorage.getItem('courierCharges');
+        if(savedCharges) {
+            couriers = JSON.parse(savedCharges);
         }
 
-        function generateBarcodeFromForm() {
-            const productName = document.getElementById('product-name').value.trim();
-            const size = document.getElementById('product-size').value.trim();
-            const color = document.getElementById('product-color').value.trim();
-            const profitMargin = document.getElementById('profit-margin').value.trim();
-            
-            if (!productName || !size || !color || !profitMargin) {
-                showToast('Please fill all fields');
+        // Set up all event listeners
+        setupEventListeners();
+
+        // Load initial data
+        loadInventory();
+        loadPurchases();
+        loadDashboardData('daily');
+    });
+
+    function setupEventListeners() {
+        // Navigation
+        document.querySelectorAll('.seller-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.seller-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentSeller = this.getAttribute('data-seller');
+                
+                if(currentSeller === 'combined') {
+                    showToast('Showing combined data for both sellers');
+                } else {
+                    showToast(`Switched to ${this.textContent}`);
+                }
+                
+                // Reload seller-specific data
+                loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+            });
+        });
+        
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const targetView = this.getAttribute('data-target');
+                showView(targetView);
+                
+                // Load data when switching to specific views
+                if(targetView === 'dashboard-view') {
+                    loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+                } else if (targetView === 'inventory-view') {
+                    loadInventory();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetView = this.getAttribute('data-target');
+                showView(targetView);
+                
+                // Load data when switching to specific views
+                if(targetView === 'dashboard-view') {
+                    loadDashboardData(document.querySelector('.filter-btn.active').dataset.period);
+                } else if (targetView === 'inventory-view') {
+                    loadInventory();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.back-btn').forEach(btn => {
+            btn.addEventListener('click', () => showView('home-view'));
+        });
+        
+        // QR Code form submission
+        document.getElementById('barcode-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateQRCode();
+        });
+        
+        document.getElementById('download-barcode').addEventListener('click', downloadQRWithText);
+        document.getElementById('save-barcode').addEventListener('click', saveToInventory);
+        
+        // Scanner
+        document.getElementById('start-scanning').addEventListener('click', startScanner);
+        document.getElementById('stop-scanning').addEventListener('click', stopScanner);
+        document.getElementById('confirm-order').addEventListener('click', confirmOrder);
+        
+        // Returns
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.getAttribute('data-tab');
+                
+                // Hide all sections
+                document.querySelectorAll('.return-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show selected section
+                document.getElementById(`${tab}-return-section`).style.display = 'block';
+            });
+        });
+        
+        document.getElementById('process-customer-return').addEventListener('click', processCustomerReturn);
+        document.getElementById('process-rto-return').addEventListener('click', processRtoReturn);
+        document.getElementById('configure-charges').addEventListener('click', showChargesModal);
+        document.getElementById('save-charges').addEventListener('click', saveCharges);
+        document.getElementById('add-courier').addEventListener('click', addCourier);
+        document.querySelector('.close-modal').addEventListener('click', hideChargesModal);
+        document.getElementById('add-item').addEventListener('click', addPurchaseItem);
+        document.getElementById('purchase-form').addEventListener('submit', savePurchase);
+        document.getElementById('close-confirmation').addEventListener('click', function() {
+            document.getElementById('confirmation-popup').classList.remove('active');
+        });
+        document.getElementById('reset-all-btn').addEventListener('click', resetAllDataWithPassword);
+        document.getElementById('update-inventory').addEventListener('click', updateInventory);
+        document.getElementById('start-rescan').addEventListener('click', startRescan);
+        document.getElementById('stop-rescan').addEventListener('click', stopRescan);
+        document.getElementById('confirm-rescan').addEventListener('click', confirmRescan);
+        
+        // Dashboard filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                loadDashboardData(this.dataset.period);
+            });
+        });
+        
+        // View details buttons
+        document.querySelectorAll('.view-details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('daily-records').style.display = 'block';
+            });
+        });
+    }
+
+    // QR Code Functions
+    function generateQRCode() {
+        const productName = document.getElementById('product-name').value.trim();
+        const size = document.getElementById('product-size').value.trim();
+        const color = document.getElementById('product-color').value.trim();
+        const profitMargin = document.getElementById('profit-margin').value.trim();
+        
+        if (!productName || !size || !color || !profitMargin) {
+            showToast('Please fill all fields');
+            return;
+        }
+        
+        // Create formatted data string
+        const qrData = `ITEM:${productName}|SIZE:${size}|COLOR:${color}|PROFIT:${profitMargin}`;
+        
+        // Generate QR code
+        const canvas = document.getElementById('qrcode-canvas');
+        QRCode.toCanvas(canvas, qrData, {
+            width: 200,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function(error) {
+            if (error) {
+                console.error(error);
+                showToast('Error generating QR code');
                 return;
             }
             
-            // Generate barcode
-            const barcodeValue = `${productName}.${size}.${color}`;
-            generateBarcode(barcodeValue);
+            // Show details
+            document.getElementById('qr-name-display').textContent = productName;
+            document.getElementById('qr-size-display').textContent = size;
+            document.getElementById('qr-color-display').textContent = color;
+            document.getElementById('qr-profit-display').textContent = profitMargin;
             
             // Show result container
             document.getElementById('barcode-result').style.display = 'block';
+        });
+    }
+    
+    function downloadQRWithText() {
+        const container = document.getElementById('qr-display-container');
+        const canvas = document.getElementById('qrcode-canvas');
+        const productName = document.getElementById('product-name').value.trim();
+        
+        if (!container || !canvas) {
+            showToast('Please generate QR code first');
+            return;
+        }
+
+        // Create a new canvas for the combined image
+        const downloadCanvas = document.createElement('canvas');
+        downloadCanvas.width = 300; // 3 inches wide
+        downloadCanvas.height = 200; // 2 inches tall
+        const ctx = downloadCanvas.getContext('2d');
+        
+        // White background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, downloadCanvas.width, downloadCanvas.height);
+        
+        // Draw QR code (left side)
+        ctx.drawImage(canvas, 10, 10, 180, 180);
+        
+        // Draw product info (right side)
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('Name: ' + document.getElementById('product-name').value, 200, 40);
+        ctx.fillText('Size: ' + document.getElementById('product-size').value, 200, 80);
+        ctx.fillText('Color: ' + document.getElementById('product-color').value, 200, 120);
+        ctx.fillText('Profit: ₹' + document.getElementById('profit-margin').value, 200, 160);
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.download = `product_${productName}.png`;
+        link.href = downloadCanvas.toDataURL('image/png');
+        link.click();
+    }
+    
+    function saveToInventory() {
+        const productName = document.getElementById('product-name').value.trim();
+        const size = document.getElementById('product-size').value.trim();
+        const color = document.getElementById('product-color').value.trim();
+        const profitMargin = parseFloat(document.getElementById('profit-margin').value);
+        
+        if (!productName || !size || !color || isNaN(profitMargin)) {
+            showToast('Please generate QR code first');
+            return;
         }
         
-        function generateBarcode(value) {
-            JsBarcode("#barcode", value, {
-                format: "CODE128",
-                displayValue: true,
-                fontSize: 14,
-                height: 50,
-                margin: 10,
-                width: 2,
-                lineColor: "#000",
-                background: "#fff"
+        // Add to common inventory collection
+        const productId = `${productName}-${size}-${color}`.toLowerCase().replace(/\s+/g, '_');
+        const qrData = `ITEM:${productName}|SIZE:${size}|COLOR:${color}|PROFIT:${profitMargin}`;
+        
+        db.collection("common_inventory").doc(productId).set({
+            name: productName,
+            size: size,
+            color: color,
+            profit: profitMargin,
+            qrData: qrData,
+            stock: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            showToast('Product saved to inventory!');
+            document.getElementById('barcode-form').reset();
+            document.getElementById('barcode-result').style.display = 'none';
+        })
+        .catch(error => {
+            console.error("Error saving product: ", error);
+            showToast('Error saving product');
+        });
+    }
+    
+    function loadInventory() {
+        const inventoryList = document.getElementById('inventory-list');
+        inventoryList.innerHTML = '<div class="empty-state"><i>⏳</i><h3>Loading inventory...</h3></div>';
+        
+        db.collection("common_inventory").get()
+        .then(snapshot => {
+            products = [];
+            snapshot.forEach(doc => {
+                products.push({id: doc.id, ...doc.data()});
             });
+            renderInventory();
+        })
+        .catch(error => {
+            console.error("Error loading inventory: ", error);
+            inventoryList.innerHTML = '<div class="empty-state"><i>⚠️</i><h3>Error loading inventory</h3><p>Please try again later</p></div>';
+        });
+    }
+    
+    function renderInventory() {
+        const inventoryList = document.getElementById('inventory-list');
+        
+        if(products.length === 0) {
+            inventoryList.innerHTML = '<div class="empty-state"><i>📦</i><h3>No products in inventory</h3><p>Add products using the QR code generator</p></div>';
+            return;
         }
         
-        function downloadBarcode() {
-            const svgElement = document.getElementById('barcode');
-            const svgData = new XMLSerializer().serializeToString(svgElement);
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            const img = new Image();
-            
-            img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                const pngFile = canvas.toDataURL("image/png");
-                const downloadLink = document.createElement("a");
-                downloadLink.download = `barcode_${new Date().getTime()}.png`;
-                downloadLink.href = pngFile;
-                downloadLink.click();
-            };
-            
-            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-            showToast('Barcode downloaded!');
-        }
+        inventoryList.innerHTML = '';
         
-        function saveToInventory() {
-            const productName = document.getElementById('product-name').value.trim();
-            const size = document.getElementById('product-size').value.trim();
-            const color = document.getElementById('product-color').value.trim();
-            const profitMargin = parseFloat(document.getElementById('profit-margin').value);
+        products.forEach(product => {
+            const item = document.createElement('div');
+            item.className = 'inventory-item';
+            item.dataset.id = product.id;
+            item.innerHTML = `
+                <div class="item-info">
+                    <h4>${product.name}.${product.size}.${product.color}</h4>
+                    <p>Profit: ₹${product.profit} per unit | Stock: ${product.stock}</p>
+                </div>
+                <div class="stock-control">
+                    <button class="stock-btn minus">-</button>
+                    <input type="number" class="stock-input" value="${product.stock}" min="0">
+                    <button class="stock-btn plus">+</button>
+                </div>
+                <button class="delete-item">×</button>
+            `;
             
-            if (!productName || !size || !color || isNaN(profitMargin)) {
-                showToast('Please generate barcode first');
-                return;
-            }
-            
-            // Add to common inventory collection
-            const productId = `${productName}-${size}-${color}`.toLowerCase().replace(/\s+/g, '_');
-            
-            db.collection("common_inventory").doc(productId).set({
-                name: productName,
-                size: size,
-                color: color,
-                profit: profitMargin,
-                barcode: `${productName}.${size}.${color}`,
-                stock: 0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                showToast('Product saved to inventory!');
-                document.getElementById('barcode-form').reset();
-                document.getElementById('barcode-result').style.display = 'none';
-            })
-            .catch(error => {
-                console.error("Error saving product: ", error);
-                showToast('Error saving product');
-            });
-        }
-        
-        function loadInventory() {
-            const inventoryList = document.getElementById('inventory-list');
-            inventoryList.innerHTML = '<div class="empty-state"><i>⏳</i><h3>Loading inventory...</h3></div>';
-            
-            db.collection("common_inventory").get()
-            .then(snapshot => {
-                products = [];
-                snapshot.forEach(doc => {
-                    products.push({id: doc.id, ...doc.data()});
-                });
-                renderInventory();
-            })
-            .catch(error => {
-                console.error("Error loading inventory: ", error);
-                inventoryList.innerHTML = '<div class="empty-state"><i>⚠️</i><h3>Error loading inventory</h3><p>Please try again later</p></div>';
-            });
-        }
-        
-        function renderInventory() {
-            const inventoryList = document.getElementById('inventory-list');
-            
-            if(products.length === 0) {
-                inventoryList.innerHTML = '<div class="empty-state"><i>📦</i><h3>No products in inventory</h3><p>Add products using the barcode generator</p></div>';
-                return;
-            }
-            
-            inventoryList.innerHTML = '';
-            
-            products.forEach(product => {
-                const item = document.createElement('div');
-                item.className = 'inventory-item';
-                item.dataset.id = product.id;
-                item.innerHTML = `
-                    <div class="item-info">
-                        <h4>${product.name}.${product.size}.${product.color}</h4>
-                        <p>Profit: ₹${product.profit} per unit | Stock: ${product.stock}</p>
-                    </div>
-                    <div class="stock-control">
-                        <button class="stock-btn minus">-</button>
-                        <input type="number" class="stock-input" value="${product.stock}" min="0">
-                        <button class="stock-btn plus">+</button>
-                    </div>
-                    <button class="delete-item">×</button>
-                `;
-                
-                // Add event listeners
-                item.querySelector('.minus').addEventListener('click', function() {
-                    const input = this.parentElement.querySelector('.stock-input');
-                    let count = parseInt(input.value);
-                    if (count > 0) {
-                        count--;
-                        input.value = count;
-                    }
-                });
-                
-                item.querySelector('.plus').addEventListener('click', function() {
-                    const input = this.parentElement.querySelector('.stock-input');
-                    let count = parseInt(input.value);
-                    count++;
+            // Add event listeners
+            item.querySelector('.minus').addEventListener('click', function() {
+                const input = this.parentElement.querySelector('.stock-input');
+                let count = parseInt(input.value);
+                if (count > 0) {
+                    count--;
                     input.value = count;
-                });
-                
-                item.querySelector('.stock-input').addEventListener('change', function() {
-                    let value = parseInt(this.value);
-                    if (isNaN(value) || value < 0) {
-                        this.value = 0;
-                    }
-                });
-                
-                item.querySelector('.delete-item').addEventListener('click', function() {
-                    const item = this.closest('.inventory-item');
-                    const productId = item.dataset.id;
-                    
-                    if(confirm("Are you sure you want to delete this product?")) {
-                        db.collection("common_inventory").doc(productId).delete()
-                        .then(() => {
-                            showToast('Product deleted successfully!');
-                        })
-                        .catch(error => {
-                            console.error("Error deleting product: ", error);
-                            showToast('Error deleting product');
-                        });
-                    }
-                });
-                
-                inventoryList.appendChild(item);
+                }
             });
-        }
-        
-        function updateInventory() {
-            const items = document.querySelectorAll('.inventory-item');
-            const updates = [];
             
-            items.forEach(item => {
+            item.querySelector('.plus').addEventListener('click', function() {
+                const input = this.parentElement.querySelector('.stock-input');
+                let count = parseInt(input.value);
+                count++;
+                input.value = count;
+            });
+            
+            item.querySelector('.stock-input').addEventListener('change', function() {
+                let value = parseInt(this.value);
+                if (isNaN(value) || value < 0) {
+                    this.value = 0;
+                }
+            });
+            
+            item.querySelector('.delete-item').addEventListener('click', function() {
+                const item = this.closest('.inventory-item');
                 const productId = item.dataset.id;
-                const stockValue = parseInt(item.querySelector('.stock-input').value);
                 
-                updates.push(
-                    db.collection("common_inventory").doc(productId).update({
-                        stock: stockValue
+                if(confirm("Are you sure you want to delete this product?")) {
+                    db.collection("common_inventory").doc(productId).delete()
+                    .then(() => {
+                        showToast('Product deleted successfully!');
                     })
-                );
-            });
-            
-            Promise.all(updates)
-            .then(() => {
-                showToast('All inventory updated!');
-            })
-            .catch(error => {
-                console.error("Error updating inventory: ", error);
-                showToast('Error updating some items');
-            });
-        }
-        
-        
-        // Improved scanner initialization function
-        function initQuagga(videoElement, onDetectCallback) {
-            return Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: videoElement,
-                    constraints: {
-                        facingMode: "environment",
-                        // Optimal resolution for barcode scanning
-                        width: { min: 640, ideal: 1280, max: 1920 },
-                        height: { min: 480, ideal: 720, max: 1080 },
-                        aspectRatio: { min: 1, max: 2 }
-                    },
-                    area: { // Define the scanning area
-                        top: "25%",
-                        right: "10%",
-                        left: "10%",
-                        bottom: "25%"
-                    }
-                },
-                decoder: {
-                    readers: ["code_128_reader"],
-                    debug: {
-                        drawBoundingBox: false,
-                        showFrequency: false,
-                        drawScanline: false,
-                        showPattern: false
-                    },
-                    multiple: false
-                },
-                locator: {
-                    patchSize: "medium", // Optimized for scanning speed
-                    halfSample: true
-                },
-                locate: true,
-                frequency: 10, // Higher frequency for faster scanning
-                numOfWorkers: navigator.hardwareConcurrency || 4 // Use available cores
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    showToast('Scanner initialization error');
-                    return;
-                }
-                
-                Quagga.start();
-                
-                // Detect when a barcode is found
-                Quagga.onDetected(function(result) {
-                    const code = result.codeResult.code;
-                    onDetectCallback(code);
-                });
-            });
-        }
-        
-        // Updated startScanner function
-        function startScanner() {
-            const video = document.getElementById('scanner-video');
-            
-            // Clear any existing stream
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
-
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 }
-                } 
-            }).then(function(stream) {
-                video.srcObject = stream;
-                video.play();
-                scannerActive = true;
-
-                // Show/hide proper buttons
-                document.getElementById('start-scanning').style.display = 'none';
-                document.getElementById('stop-scanning').style.display = 'block';
-                document.getElementById('scanned-result').style.display = 'none';
-
-                // Add laser animation to overlay
-                const overlay = document.querySelector('.scanner-overlay');
-                overlay.innerHTML = `
-                    <div class="scanner-frame">
-                        <div class="scanner-laser"></div>
-                        <div class="scanner-hint">Align barcode inside the frame</div>
-                    </div>
-                    <div class="focus-indicator">Tap to focus</div>
-                `;
-                
-                // Add tap-to-focus functionality
-                video.addEventListener('click', function() {
-                    // Try to focus on the tapped position
-                    if ('getTrackCapabilities' in stream.getVideoTracks()[0]) {
-                        const track = stream.getVideoTracks()[0];
-                        if (track.getCapabilities().focusMode.includes('manual')) {
-                            const settings = track.getSettings();
-                            const capabilities = track.getCapabilities();
-                            
-                            // Calculate relative position
-                            const rect = video.getBoundingClientRect();
-                            const x = (event.clientX - rect.left) / rect.width;
-                            const y = (event.clientY - rect.top) / rect.height;
-                            
-                            // Apply manual focus
-                            track.applyConstraints({
-                                advanced: [{
-                                    focusMode: 'manual',
-                                    focusDistance: 0.2,
-                                    pointsOfInterest: [{x: x, y: y}]
-                                }]
-                            });
-                            
-                            showToast('Focus adjusted');
-                        }
-                    }
-                });
-
-                // Initialize Quagga with optimized settings
-                initQuagga(video, function(code) {
-                    document.getElementById('scanned-product').value = code;
-                    document.getElementById('scanned-result').style.display = 'block';
-                    
-                    // Play beep sound
-                    playBeepSound();
-                });
-            })
-            .catch(function(err) {
-                console.error("Error accessing camera: ", err);
-                showToast('Camera access denied or not supported');
-            });
-        }
-        
-        // Updated startRescan function
-        function startRescan() {
-            const video = document.getElementById('rescan-video');
-            
-            // First check if scanner is already active
-            if (rescanActive) return;
-            
-            // Clear any existing stream
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
-
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 }
-                } 
-            }).then(function(stream) {
-                video.srcObject = stream;
-                video.play();
-                rescanActive = true;
-
-                // Show/hide proper buttons
-                document.getElementById('start-rescan').style.display = 'none';
-                document.getElementById('stop-rescan').style.display = 'block';
-                document.getElementById('scanned-rescan-result').style.display = 'none';
-
-                // Add laser animation to overlay
-                const overlay = document.querySelector('.scanner-overlay');
-                overlay.innerHTML = `
-                    <div class="scanner-frame">
-                        <div class="scanner-laser"></div>
-                        <div class="scanner-hint">Align barcode inside the frame</div>
-                    </div>
-                    <div class="focus-indicator">Tap to focus</div>
-                `;
-                
-                // Add tap-to-focus functionality
-                video.addEventListener('click', function() {
-                    // Try to focus on the tapped position
-                    if ('getTrackCapabilities' in stream.getVideoTracks()[0]) {
-                        const track = stream.getVideoTracks()[0];
-                        if (track.getCapabilities().focusMode.includes('manual')) {
-                            const settings = track.getSettings();
-                            const capabilities = track.getCapabilities();
-                            
-                            // Calculate relative position
-                            const rect = video.getBoundingClientRect();
-                            const x = (event.clientX - rect.left) / rect.width;
-                            const y = (event.clientY - rect.top) / rect.height;
-                            
-                            // Apply manual focus
-                            track.applyConstraints({
-                                advanced: [{
-                                    focusMode: 'manual',
-                                    focusDistance: 0.2,
-                                    pointsOfInterest: [{x: x, y: y}]
-                                }]
-                            });
-                            
-                            showToast('Focus adjusted');
-                        }
-                    }
-                });
-
-                // Initialize Quagga with optimized settings
-                initQuagga(video, function(code) {
-                    document.getElementById('rescan-product').value = code;
-                    document.getElementById('scanned-rescan-result').style.display = 'block';
-                    
-                    // Play beep sound
-                    playBeepSound();
-                    
-                    // Auto-focus on quantity field
-                    document.getElementById('rescan-quantity').focus();
-                });
-            })
-            .catch(function(err) {
-                console.error("Error accessing camera: ", err);
-                showToast('Camera access denied or not supported');
-                stopRescan();
-            });
-        }
-        
-        function stopScanner() {
-            const video = document.getElementById('scanner-video');
-            const stream = video.srcObject;
-            
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-            }
-            
-            if (scannerActive) {
-                Quagga.stop();
-                scannerActive = false;
-            }
-            
-            // Show start button
-            document.getElementById('start-scanning').style.display = 'block';
-            document.getElementById('stop-scanning').style.display = 'none';
-            document.getElementById('scanned-result').style.display = 'none';
-        }
-        
-        function confirmOrder() {
-            const productBarcode = document.getElementById('scanned-product').value.trim();
-            const quantity = parseInt(document.getElementById('order-quantity').value);
-            
-            if (!productBarcode || !quantity || quantity < 1) {
-                showToast('Please scan a product and enter valid quantity');
-                return;
-            }
-            
-            // Find product in inventory
-            const product = products.find(p => p.barcode === productBarcode);
-            if (!product) {
-                showToast('Product not found in inventory');
-                return;
-            }
-            
-            if (product.stock < quantity) {
-                showToast('Not enough stock available');
-                return;
-            }
-            
-            // Create order
-            const order = {
-                productId: product.id,
-                productName: product.name,
-                size: product.size,
-                color: product.color,
-                quantity: quantity,
-                profit: product.profit * quantity,
-                seller: currentSeller === "combined" ? "AAA" : currentSeller, // Default to AAA if combined view
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Save to Firestore (seller-specific collection)
-            db.collection(`sellers/${currentSeller === "combined" ? "AAA" : currentSeller}/orders`).add(order)
-            .then(() => {
-                // Update inventory (common collection)
-                const newStock = product.stock - quantity;
-                return db.collection("common_inventory").doc(product.id).update({
-                    stock: newStock
-                });
-            })
-            .then(() => {
-                showToast(`Order processed: ${quantity} x ${productBarcode}`);
-                playBeepSound();
-                stopScanner();
-                document.getElementById('order-quantity').value = 1;
-            })
-            .catch(error => {
-                console.error("Error processing order: ", error);
-                showToast('Error processing order');
-            });
-        }
-        
-        function processCustomerReturn() {
-            const courier = document.getElementById('return-courier').value;
-            const quantity = parseInt(document.getElementById('customer-return-qty').value);
-            const wrongReturns = parseInt(document.getElementById('wrong-return-qty').value);
-            const claims = parseInt(document.getElementById('claims-received').value);
-            const compensation = parseFloat(document.getElementById('compensation-amount').value);
-            
-            if (!courier || !quantity || quantity < 1) {
-                showToast('Please select a courier and enter valid quantity');
-                return;
-            }
-            
-            // Get charge for this courier
-            const courierData = couriers.find(c => c.id === courier);
-            const charge = courierData ? courierData.charge : 0;
-            
-            // Create return record
-            const returnData = {
-                type: "customer",
-                courier: courier,
-                quantity: quantity,
-                wrongReturns: wrongReturns,
-                claims: claims,
-                compensation: compensation,
-                charge: charge * quantity,
-                seller: currentSeller === "combined" ? "AAA" : currentSeller, // Default to AAA if combined view
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Save to Firestore (seller-specific collection)
-            db.collection(`sellers/${currentSeller === "combined" ? "AAA" : currentSeller}/returns`).add(returnData)
-            .then(() => {
-                showConfirmation("Return processed successfully!");
-                playBeepSound();
-                showToast(`Processed ${quantity} customer returns`);
-                
-                // Reset form
-                document.getElementById('customer-return-qty').value = 1;
-                document.getElementById('wrong-return-qty').value = 0;
-                document.getElementById('claims-received').value = 0;
-                document.getElementById('compensation-amount').value = 0;
-            })
-            .catch(error => {
-                console.error("Error saving return: ", error);
-                showToast('Error processing return');
-            });
-        }
-        
-        function processRtoReturn() {
-            const courier = document.getElementById('rto-courier').value;
-            const quantity = parseInt(document.getElementById('rto-return-qty').value);
-            
-            if (!courier || !quantity || quantity < 1) {
-                showToast('Please select a courier and enter valid quantity');
-                return;
-            }
-            
-            // Create return record (no charge for RTO)
-            const returnData = {
-                type: "rto",
-                courier: courier,
-                quantity: quantity,
-                seller: currentSeller === "combined" ? "AAA" : currentSeller, // Default to AAA if combined view
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Save to Firestore (seller-specific collection)
-            db.collection(`sellers/${currentSeller === "combined" ? "AAA" : currentSeller}/returns`).add(returnData)
-            .then(() => {
-                showConfirmation("RTO return processed!");
-                playBeepSound();
-                showToast(`Processed ${quantity} RTO returns`);
-                
-                // Reset form
-                document.getElementById('rto-return-qty').value = 1;
-            })
-            .catch(error => {
-                console.error("Error saving return: ", error);
-                showToast('Error processing return');
-            });
-        }
-        
-        function startRescan() {
-            const video = document.getElementById('rescan-video');
-            
-            // First check if scanner is already active
-            if (rescanActive) return;
-            
-            // Clear any existing stream
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
-
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            }).then(function(stream) {
-                video.srcObject = stream;
-                video.play();
-                rescanActive = true;
-
-                // Show/hide proper buttons
-                document.getElementById('start-rescan').style.display = 'none';
-                document.getElementById('stop-rescan').style.display = 'block';
-                document.getElementById('scanned-rescan-result').style.display = 'none';
-
-                // Initialize Quagga with proper configuration
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: video,
-                        constraints: {
-                            width: 640,
-                            height: 480,
-                            facingMode: "environment"
-                        },
-                    },
-                    decoder: {
-                        readers: ["code_128_reader"],
-                        debug: false
-                    },
-                    locate: true
-                }, function(err) {
-                    if (err) {
-                        console.error(err);
-                        showToast('Scanner initialization error');
-                        stopRescan();
-                        return;
-                    }
-                    
-                    Quagga.start();
-                    
-                    // Detect when a barcode is found
-                    Quagga.onDetected(function(result) {
-                        const code = result.codeResult.code;
-                        document.getElementById('rescan-product').value = code;
-                        document.getElementById('scanned-rescan-result').style.display = 'block';
-                        
-                        // Play beep sound
-                        playBeepSound();
-                        
-                        // Auto-focus on quantity field
-                        document.getElementById('rescan-quantity').focus();
+                    .catch(error => {
+                        console.error("Error deleting product: ", error);
+                        showToast('Error deleting product');
                     });
-                });
-            })
-            .catch(function(err) {
-                console.error("Error accessing camera: ", err);
-                showToast('Camera access denied or not supported');
-                stopRescan();
-            });
-        }
-        
-        function stopRescan() {
-            const video = document.getElementById('rescan-video');
-            const stream = video.srcObject;
-            
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-            }
-            
-            if (rescanActive) {
-                Quagga.stop();
-                rescanActive = false;
-            }
-            
-            // Show start button
-            document.getElementById('start-rescan').style.display = 'block';
-            document.getElementById('stop-rescan').style.display = 'none';
-            document.getElementById('scanned-rescan-result').style.display = 'none';
-        }
-        
-        function confirmRescan() {
-            const productBarcode = document.getElementById('rescan-product').value.trim();
-            const quantity = parseInt(document.getElementById('rescan-quantity').value);
-            
-            if (!productBarcode || !quantity || quantity < 1) {
-                showToast('Please scan a product and enter valid quantity');
-                return;
-            }
-            
-            // Find product in inventory
-            const product = products.find(p => p.barcode === productBarcode);
-            if (!product) {
-                showToast('Product not found in inventory');
-                return;
-            }
-            
-            // Update inventory (common collection)
-            const newStock = product.stock + quantity;
-            db.collection("common_inventory").doc(product.id).update({
-                stock: newStock
-            })
-            .then(() => {
-                showToast(`Added ${quantity} items to inventory: ${productBarcode}`);
-                playBeepSound();
-                document.getElementById('rescan-quantity').value = 1;
-                stopRescan();
-            })
-            .catch(error => {
-                console.error("Error updating stock: ", error);
-                showToast('Error adding to inventory');
-            });
-        }
-        
-        function showChargesModal() {
-            const chargeConfig = document.getElementById('charge-config');
-            chargeConfig.innerHTML = '';
-            
-            couriers.forEach(courier => {
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <div class="charge-label">${courier.name}</div>
-                    <input type="number" class="charge-input" value="${courier.charge}" data-id="${courier.id}" min="0" step="0.01">
-                `;
-                chargeConfig.appendChild(div);
-            });
-            
-            document.getElementById('charges-modal').classList.add('active');
-        }
-        
-        function hideChargesModal() {
-            document.getElementById('charges-modal').classList.remove('active');
-        }
-        
-        function saveCharges() {
-            const inputs = document.querySelectorAll('.charge-input');
-            inputs.forEach(input => {
-                const courierId = input.dataset.id;
-                const charge = parseFloat(input.value);
-                
-                // Find courier and update
-                const courier = couriers.find(c => c.id === courierId);
-                if(courier) {
-                    courier.charge = charge;
                 }
             });
             
-            // Save to localStorage
-            localStorage.setItem('courierCharges', JSON.stringify(couriers));
+            inventoryList.appendChild(item);
+        });
+    }
+    
+    function updateInventory() {
+        const items = document.querySelectorAll('.inventory-item');
+        const updates = [];
+        
+        items.forEach(item => {
+            const productId = item.dataset.id;
+            const stockValue = parseInt(item.querySelector('.stock-input').value);
             
-            hideChargesModal();
-            showToast('Courier charges updated!');
+            updates.push(
+                db.collection("common_inventory").doc(productId).update({
+                    stock: stockValue
+                })
+            );
+        });
+        
+        Promise.all(updates)
+        .then(() => {
+            showToast('All inventory updated!');
+        })
+        .catch(error => {
+            console.error("Error updating inventory: ", error);
+            showToast('Error updating some items');
+        });
+    }
+    
+    // Optimized QR Scanner
+    function startScanner() {
+        const video = document.getElementById('scanner-video');
+        
+        // Clear any existing stream
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            clearInterval(scanningInterval);
+        }
+
+        navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 }
+            } 
+        }).then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+            scannerActive = true;
+
+            // Show/hide proper buttons
+            document.getElementById('start-scanning').style.display = 'none';
+            document.getElementById('stop-scanning').style.display = 'block';
+            document.getElementById('scanned-result').style.display = 'none';
+
+            // Square scanner overlay
+            document.querySelector('.scanner-frame').style.aspectRatio = '1/1';
+
+            // Fast scanning (60fps)
+            const scanFrame = () => {
+                if (!scannerActive) return;
+                
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    // Set canvas dimensions to match video
+                    canvasElement.width = video.videoWidth;
+                    canvasElement.height = video.videoHeight;
+                    
+                    // Draw video frame to canvas
+                    canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                    
+                    // Get image data from canvas
+                    const imageData = canvasContext.getImageData(
+                        0, 0, canvasElement.width, canvasElement.height
+                    );
+                    
+                    // Scan for QR codes
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                        maxScansPerSecond: 60
+                    });
+                    
+                    if (code) {
+                        // QR code found - parse the data
+                        const qrData = parseQRData(code.data);
+                        
+                        if (qrData) {
+                            document.getElementById('scanned-product').value = code.data;
+                            document.getElementById('scanned-result').style.display = 'block';
+                            playBeepSound();
+                            
+                            // Stop scanning after successful detection
+                            scannerActive = false;
+                        }
+                    }
+                }
+                if (scannerActive) {
+                    requestAnimationFrame(scanFrame);
+                }
+            };
+            scanFrame();
+        })
+        .catch(function(err) {
+            console.error("Error accessing camera: ", err);
+            showToast('Camera access denied or not supported');
+        });
+    }
+    
+    function parseQRData(qrData) {
+        try {
+            // Parse the formatted QR code data
+            const parts = qrData.split('|');
+            const result = {
+                original: qrData,
+                name: parts.find(p => p.startsWith('ITEM:')).split(':')[1],
+                size: parts.find(p => p.startsWith('SIZE:')).split(':')[1],
+                color: parts.find(p => p.startsWith('COLOR:')).split(':')[1],
+                profit: parseFloat(parts.find(p => p.startsWith('PROFIT:')).split(':')[1])
+            };
+            return result;
+        } catch (e) {
+            console.error("Error parsing QR data:", e);
+            showToast('Invalid QR code format');
+            return null;
+        }
+    }
+    
+    function stopScanner() {
+        const video = document.getElementById('scanner-video');
+        const stream = video.srcObject;
+        
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
         }
         
-        function addCourier() {
-            const name = prompt("Enter courier name:");
-            if (!name) return;
+        scannerActive = false;
+        
+        // Show start button
+        document.getElementById('start-scanning').style.display = 'block';
+        document.getElementById('stop-scanning').style.display = 'none';
+        document.getElementById('scanned-result').style.display = 'none';
+    }
+    
+    function confirmOrder() {
+        const productQR = document.getElementById('scanned-product').value.trim();
+        const quantity = parseInt(document.getElementById('order-quantity').value);
+        
+        if (!productQR || !quantity || quantity < 1) {
+            showToast('Please scan a product and enter valid quantity');
+            return;
+        }
+        
+        // Parse QR data to get product info
+        const qrData = parseQRData(productQR);
+        if (!qrData) return;
+        
+        // Find product in inventory
+        const productId = `${qrData.name}-${qrData.size}-${qrData.color}`.toLowerCase().replace(/\s+/g, '_');
+        const product = products.find(p => p.id === productId);
+        
+        if (!product) {
+            showToast('Product not found in inventory');
+            return;
+        }
+        
+        if (product.stock < quantity) {
+            showToast('Not enough stock available');
+            return;
+        }
+        
+        // Create order
+        const order = {
+            productId: product.id,
+            productName: product.name,
+            size: product.size,
+            color: product.color,
+            quantity: quantity,
+            profit: product.profit * quantity,
+            seller: currentSeller === "combined" ? "AAA" : currentSeller,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save to Firestore (seller-specific collection)
+        db.collection(`sellers/${currentSeller === "combined" ? "AAA" : currentSeller}/orders`).add(order)
+        .then(() => {
+            // Update inventory (common collection)
+            const newStock = product.stock - quantity;
+            return db.collection("common_inventory").doc(product.id).update({
+                stock: newStock
+            });
+        })
+        .then(() => {
+            showToast(`Order processed: ${quantity} x ${product.name}`);
+            playBeepSound();
+            stopScanner();
+            document.getElementById('order-quantity').value = 1;
+        })
+        .catch(error => {
+            console.error("Error processing order: ", error);
+            showToast('Error processing order');
+        });
+    }
+    
+    function processCustomerReturn() {
+        const courier = document.getElementById('return-courier').value;
+        const quantity = parseInt(document.getElementById('customer-return-qty').value);
+        const wrongReturns = parseInt(document.getElementById('wrong-return-qty').value);
+        const claims = parseInt(document.getElementById('claims-received').value);
+        const compensation = parseFloat(document.getElementById('compensation-amount').value);
             
-            const id = name.toLowerCase().replace(/\s+/g, '_');
-            const colors = ['sf', 'ec', 'dl', 'vm'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        if (!courier || !quantity || quantity < 1) {
+            showToast('Please select a courier and enter valid quantity');
+            return;
+        }
+        
+        // Get charge for this courier
+        const courierData = couriers.find(c => c.id === courier);
+        const charge = courierData ? courierData.charge : 0;
+        
+        // Create return record
+        const returnData = {
+            type: "customer",
+            courier: courier,
+            quantity: quantity,
+            wrongReturns: wrongReturns,
+            claims: claims,
+            compensation: compensation,
+            charge: charge * quantity,
+            seller: currentSeller === "combined" ? "AAA" : currentSeller,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save to Firestore (seller-specific collection)
+        db.collection(`sellers/${currentSeller === "combined" ? "AAA" : currentSeller}/returns`).add(returnData)
+        .then(() => {
+            showConfirmation("Return processed successfully!");
+            playBeepSound();
+            showToast(`Processed ${quantity} customer returns`);
             
-            const newCourier = {
-                id: id,
-                name: name,
-                color: randomColor,
-                charge: 25
-            };
+            // Reset form
+            document.getElementById('customer-return-qty').value = 1;
+            document.getElementById('wrong-return-qty').value = 0;
+            document.getElementById('claims-received').value = 0;
+            document.getElementById('compensation-amount').value = 0;
+        })
+        .catch(error => {
+            console.error("Error saving return: ", error);
+            showToast('Error processing return');
+        });
+    }
+    
+    function processRtoReturn() {
+        const courier = document.getElementById('rto-courier').value;
+        const quantity = parseInt(document.getElementById('rto-return-qty').value);
+        
+        if (!courier || !quantity || quantity < 1) {
+            showToast('Please select a courier and enter valid quantity');
+            return;
+        }
+        
+        // Create return record (no charge for RTO)
+        const returnData = {
+            type: "rto",
+            courier: courier,
+            quantity: quantity,
+            seller: currentSeller === "combined" ? "AAA" : currentSeller,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save to Firestore (seller-specific collection)
+        db.collection(`sellers/${currentSeller === "combined" ? "AAA" : currentSeller}/returns`).add(returnData)
+        .then(() => {
+            showConfirmation("RTO return processed!");
+            playBeepSound();
+            showToast(`Processed ${quantity} RTO returns`);
             
-            couriers.push(newCourier);
-            
-            // Add to the UI
-            const chargeConfig = document.getElementById('charge-config');
+            // Reset form
+            document.getElementById('rto-return-qty').value = 1;
+        })
+        .catch(error => {
+            console.error("Error saving return: ", error);
+            showToast('Error processing return');
+        });
+    }
+    
+    function startRescan() {
+        const video = document.getElementById('rescan-video');
+        
+        // First check if scanner is already active
+        if (rescanActive) return;
+        
+        // Clear any existing stream
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+
+        navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        }).then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+            rescanActive = true;
+
+            // Show/hide proper buttons
+            document.getElementById('start-rescan').style.display = 'none';
+            document.getElementById('stop-rescan').style.display = 'block';
+            document.getElementById('scanned-rescan-result').style.display = 'none';
+
+            // Start barcode scanning loop
+            scanningInterval = setInterval(() => {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    // Set canvas dimensions to match video
+                    canvasElement.width = video.videoWidth;
+                    canvasElement.height = video.videoHeight;
+                    
+                    // Draw video frame to canvas
+                    canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                    
+                    // Get image data from canvas
+                    const imageData = canvasContext.getImageData(
+                        0, 0, canvasElement.width, canvasElement.height
+                    );
+                    
+                    // Scan for QR codes
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                        maxScansPerSecond: 60
+                    });
+                    
+                    if (code) {
+                        // QR code found - parse the data
+                        const qrData = parseQRData(code.data);
+                        
+                        if (qrData) {
+                            document.getElementById('rescan-product').value = code.data;
+                            document.getElementById('scanned-rescan-result').style.display = 'block';
+                            playBeepSound();
+                        }
+                    }
+                }
+            }, 16); // ~60fps
+        })
+        .catch(function(err) {
+            console.error("Error accessing camera: ", err);
+            showToast('Camera access denied or not supported');
+            stopRescan();
+        });
+    }
+    
+    function stopRescan() {
+        const video = document.getElementById('rescan-video');
+        const stream = video.srcObject;
+        
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+        
+        if (scanningInterval) {
+            clearInterval(scanningInterval);
+        }
+        
+        rescanActive = false;
+        
+        // Show start button
+        document.getElementById('start-rescan').style.display = 'block';
+        document.getElementById('stop-rescan').style.display = 'none';
+        document.getElementById('scanned-rescan-result').style.display = 'none';
+    }
+    
+    function confirmRescan() {
+        const productBarcode = document.getElementById('rescan-product').value.trim();
+        const quantity = parseInt(document.getElementById('rescan-quantity').value);
+        
+        if (!productBarcode || !quantity || quantity < 1) {
+            showToast('Please scan a product and enter valid quantity');
+            return;
+        }
+        
+        // Parse barcode data to get product info
+        const barcodeData = parseQRData(productBarcode);
+        if (!barcodeData) return;
+        
+        // Find product in inventory
+        const productId = `${barcodeData.name}-${barcodeData.size}-${barcodeData.color}`.toLowerCase().replace(/\s+/g, '_');
+        const product = products.find(p => p.id === productId);
+        
+        if (!product) {
+            showToast('Product not found in inventory');
+            return;
+        }
+        
+        // Update inventory (common collection)
+        const newStock = product.stock + quantity;
+        db.collection("common_inventory").doc(product.id).update({
+            stock: newStock
+        })
+        .then(() => {
+            showToast(`Added ${quantity} items to inventory: ${product.name}`);
+            playBeepSound();
+            document.getElementById('rescan-quantity').value = 1;
+            stopRescan();
+        })
+        .catch(error => {
+            console.error("Error updating stock: ", error);
+            showToast('Error adding to inventory');
+        });
+    }
+    
+    function showChargesModal() {
+        const chargeConfig = document.getElementById('charge-config');
+        chargeConfig.innerHTML = '';
+        
+        couriers.forEach(courier => {
             const div = document.createElement('div');
             div.innerHTML = `
-                <div class="charge-label">${name}</div>
-                <input type="number" class="charge-input" value="25" data-id="${id}" min="0" step="0.01">
+                <div class="charge-label">${courier.name}</div>
+                <input type="number" class="charge-input" value="${courier.charge}" data-id="${courier.id}" min="0" step="0.01">
             `;
             chargeConfig.appendChild(div);
+        });
+        
+        document.getElementById('charges-modal').classList.add('active');
+    }
+    
+    function hideChargesModal() {
+        document.getElementById('charges-modal').classList.remove('active');
+    }
+    
+    function saveCharges() {
+        const inputs = document.querySelectorAll('.charge-input');
+        inputs.forEach(input => {
+            const courierId = input.dataset.id;
+            const charge = parseFloat(input.value);
+            
+            // Find courier and update
+            const courier = couriers.find(c => c.id === courierId);
+            if(courier) {
+                courier.charge = charge;
+            }
+        });
+        
+        // Save to localStorage
+        localStorage.setItem('courierCharges', JSON.stringify(couriers));
+        
+        hideChargesModal();
+        showToast('Courier charges updated!');
+    }
+    
+    function addCourier() {
+        const name = prompt("Enter courier name:");
+        if (!name) return;
+        
+        const id = name.toLowerCase().replace(/\s+/g, '_');
+        const colors = ['sf', 'ec', 'dl', 'vm'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        const newCourier = {
+            id: id,
+            name: name,
+            color: randomColor,
+            charge: 25
+        };
+        
+        couriers.push(newCourier);
+        
+        // Add to the UI
+        const chargeConfig = document.getElementById('charge-config');
+        const div = document.createElement('div');
+        div.innerHTML = `
+            <div class="charge-label">${name}</div>
+            <input type="number" class="charge-input" value="25" data-id="${id}" min="0" step="0.01">
+        `;
+        chargeConfig.appendChild(div);
+    }
+    
+    function addPurchaseItem() {
+        const container = document.getElementById('purchase-items');
+        const newItem = document.createElement('div');
+        newItem.className = 'purchase-item';
+        newItem.innerHTML = `
+            <div class="item-row">
+                <input type="text" class="form-control item-name" placeholder="Item name">
+                <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
+                <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
+            </div>
+        `;
+        container.appendChild(newItem);
+    }
+    
+    function savePurchase(e) {
+        e.preventDefault();
+        
+        const vendor = document.getElementById('vendor-name').value.trim();
+        const date = document.getElementById('purchase-date').value;
+        const total = parseFloat(document.getElementById('total-amount').value);
+        
+        if (!vendor || !date || isNaN(total)) {
+            showToast('Please fill all required fields');
+            return;
         }
         
-        function addPurchaseItem() {
+        // Collect items
+        const items = [];
+        document.querySelectorAll('.purchase-item').forEach(item => {
+            const name = item.querySelector('.item-name').value.trim();
+            const qty = parseInt(item.querySelector('.item-qty').value);
+            const price = parseFloat(item.querySelector('.item-price').value);
+            
+            if (name && !isNaN(qty) && qty > 0 && !isNaN(price) && price >= 0) {
+                items.push({
+                    name: name,
+                    quantity: qty,
+                    price: price
+                });
+            }
+        });
+        
+        if (items.length === 0) {
+            showToast('Please add at least one valid item');
+            return;
+        }
+        
+        // Create purchase record
+        const purchase = {
+            vendor: vendor,
+            date: date,
+            items: items,
+            total: total,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save to Firestore (common collection)
+        db.collection("common_purchases").add(purchase)
+        .then(() => {
+            showToast('Purchase saved successfully!');
+            document.getElementById('purchase-form').reset();
+            
+            // Reset items to just one
             const container = document.getElementById('purchase-items');
-            const newItem = document.createElement('div');
-            newItem.className = 'purchase-item';
-            newItem.innerHTML = `
-                <div class="item-row">
-                    <input type="text" class="form-control item-name" placeholder="Item name">
-                    <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
-                    <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
+            container.innerHTML = `
+                <div class="purchase-item">
+                    <div class="item-row">
+                        <input type="text" class="form-control item-name" placeholder="Item name">
+                        <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
+                        <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
+                    </div>
                 </div>
             `;
-            container.appendChild(newItem);
+        })
+        .catch(error => {
+            console.error("Error saving purchase: ", error);
+            showToast('Error saving purchase');
+        });
+    }
+    
+    function loadPurchases() {
+        db.collection("common_purchases").orderBy("timestamp", "desc").limit(10).get()
+        .then(snapshot => {
+            purchases = [];
+            snapshot.forEach(doc => {
+                purchases.push({id: doc.id, ...doc.data()});
+            });
+            renderPurchasesTable();
+        })
+        .catch(error => {
+            console.error("Error loading purchases: ", error);
+        });
+    }
+    
+    function renderPurchasesTable() {
+        const tableBody = document.querySelector('#purchases-table tbody');
+        tableBody.innerHTML = '';
+        
+        if (purchases.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No purchases recorded yet</td></tr>';
+            return;
         }
         
-        function savePurchase(e) {
-            e.preventDefault();
+        purchases.forEach(purchase => {
+            const row = document.createElement('tr');
             
-            const vendor = document.getElementById('vendor-name').value.trim();
-            const date = document.getElementById('purchase-date').value;
-            const total = parseFloat(document.getElementById('total-amount').value);
+            // Format date
+            const date = new Date(purchase.timestamp?.seconds * 1000 || purchase.date);
+            const formattedDate = date.toLocaleDateString('en-IN');
             
-            if (!vendor || !date || isNaN(total)) {
-                showToast('Please fill all required fields');
-                return;
-            }
+            // Count items
+            const itemCount = purchase.items.reduce((sum, item) => sum + item.quantity, 0);
             
-            // Collect items
-            const items = [];
-            document.querySelectorAll('.purchase-item').forEach(item => {
-                const name = item.querySelector('.item-name').value.trim();
-                const qty = parseInt(item.querySelector('.item-qty').value);
-                const price = parseFloat(item.querySelector('.item-price').value);
+            row.innerHTML = `
+                <td>${formattedDate}</td>
+                <td>${purchase.vendor}</td>
+                <td>${itemCount} items</td>
+                <td>₹${purchase.total.toFixed(2)}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
+    
+    function loadDashboardData(period) {
+        // Calculate date range based on period
+        let startDate = new Date();
+        let endDate = new Date();
+        
+        switch(period) {
+            case 'daily':
+                startDate.setHours(0, 0, 0, 0);
+                break;
+            case 'weekly':
+                startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of week
+                startDate.setHours(0, 0, 0, 0);
+                break;
+            case 'monthly':
+                startDate.setDate(1);
+                startDate.setHours(0, 0, 0, 0);
+                break;
+            case 'all':
+                startDate = new Date(0); // Unix epoch
+                break;
+        }
+        
+        // Convert to Firestore timestamps
+        const startTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
+        const endTimestamp = firebase.firestore.Timestamp.fromDate(endDate);
+        
+        // Query orders and returns based on current seller
+        const ordersQuery = currentSeller === "combined" ? 
+            db.collectionGroup('orders') : 
+            db.collection(`sellers/${currentSeller}/orders`);
+        
+        const returnsQuery = currentSeller === "combined" ? 
+            db.collectionGroup('returns') : 
+            db.collection(`sellers/${currentSeller}/returns`);
+        
+        // Get orders in period
+        ordersQuery.where("timestamp", ">=", startTimestamp)
+            .where("timestamp", "<=", endTimestamp)
+            .get()
+            .then(ordersSnapshot => {
+                orders = [];
+                ordersSnapshot.forEach(doc => {
+                    orders.push({id: doc.id, ...doc.data()});
+                });
                 
-                if (name && !isNaN(qty) && qty > 0 && !isNaN(price) && price >= 0) {
-                    items.push({
-                        name: name,
-                        quantity: qty,
-                        price: price
-                    });
-                }
-            });
-            
-            if (items.length === 0) {
-                showToast('Please add at least one valid item');
-                return;
-            }
-            
-            // Create purchase record
-            const purchase = {
-                vendor: vendor,
-                date: date,
-                items: items,
-                total: total,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Save to Firestore (common collection)
-            db.collection("common_purchases").add(purchase)
-            .then(() => {
-                showToast('Purchase saved successfully!');
-                document.getElementById('purchase-form').reset();
+                // Get returns in period
+                return returnsQuery.where("timestamp", ">=", startTimestamp)
+                    .where("timestamp", "<=", endTimestamp)
+                    .get();
+            })
+            .then(returnsSnapshot => {
+                returns = [];
+                returnsSnapshot.forEach(doc => {
+                    returns.push({id: doc.id, ...doc.data()});
+                });
                 
-                // Reset items to just one
-                const container = document.getElementById('purchase-items');
-                container.innerHTML = `
-                    <div class="purchase-item">
-                        <div class="item-row">
-                            <input type="text" class="form-control item-name" placeholder="Item name">
-                            <input type="number" class="form-control item-qty" placeholder="Qty" min="1">
-                            <input type="number" class="form-control item-price" placeholder="Price (₹)" min="0" step="0.01">
-                        </div>
-                    </div>
-                `;
+                // Update dashboard with real data
+                updateDashboard();
             })
             .catch(error => {
-                console.error("Error saving purchase: ", error);
-                showToast('Error saving purchase');
+                console.error("Error loading dashboard data: ", error);
+                showToast('Error loading dashboard data');
             });
+    }
+    
+    function updateDashboard() {
+        // Calculate totals
+        const totalOrders = orders.length;
+        const totalReturns = returns.reduce((sum, r) => sum + r.quantity, 0);
+        
+        // Calculate earnings (sum of all order profits)
+        const totalEarnings = orders.reduce((sum, o) => sum + o.profit, 0);
+        
+        // Calculate return charges (sum of all customer return charges)
+        const returnCharges = returns
+            .filter(r => r.type === "customer")
+            .reduce((sum, r) => sum + (r.charge || 0), 0);
+        
+        // Net profit/loss
+        const netProfit = totalEarnings - returnCharges;
+        
+        // Update UI
+        document.getElementById('total-orders').textContent = totalOrders;
+        document.getElementById('total-returns').textContent = totalReturns;
+        document.getElementById('total-earnings').textContent = `₹${totalEarnings.toFixed(2)}`;
+        document.getElementById('return-charges').textContent = `₹${returnCharges.toFixed(2)}`;
+        document.getElementById('net-profit').textContent = `₹${netProfit.toFixed(2)}`;
+        
+        // Update daily records table
+        updateDailyRecordsTable();
+    }
+    
+    function updateDailyRecordsTable() {
+        const tableBody = document.querySelector('#daily-records-table tbody');
+        tableBody.innerHTML = '';
+        
+        // Group data by day
+        const dailyData = {};
+        
+        // Process orders
+        orders.forEach(order => {
+            const date = order.timestamp?.toDate() || new Date();
+            const dateStr = date.toISOString().split('T')[0];
+            
+            if (!dailyData[dateStr]) {
+                dailyData[dateStr] = {
+                    date: dateStr,
+                    orders: 0,
+                    returns: 0,
+                    earnings: 0,
+                    charges: 0
+                };
+            }
+            
+            dailyData[dateStr].orders += 1;
+            dailyData[dateStr].earnings += order.profit;
+        });
+        
+        // Process returns
+        returns.forEach(ret => {
+            const date = ret.timestamp?.toDate() || new Date();
+            const dateStr = date.toISOString().split('T')[0];
+            
+            if (!dailyData[dateStr]) {
+                dailyData[dateStr] = {
+                    date: dateStr,
+                    orders: 0,
+                    returns: 0,
+                    earnings: 0,
+                    charges: 0
+                };
+            }
+            
+            dailyData[dateStr].returns += ret.quantity;
+            
+            if (ret.type === "customer") {
+                dailyData[dateStr].charges += ret.charge || 0;
+            }
+        });
+        
+        // Sort dates descending
+        const sortedDates = Object.keys(dailyData).sort((a, b) => new Date(b) - new Date(a));
+        
+        // Populate table
+        sortedDates.forEach(date => {
+            const data = dailyData[date];
+            const row = document.createElement('tr');
+            
+            // Format date for display
+            const displayDate = new Date(date).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+            
+            row.innerHTML = `
+                <td>${displayDate}</td>
+                <td>${data.orders}</td>
+                <td>${data.returns}</td>
+                <td>₹${data.earnings.toFixed(2)}</td>
+                <td>₹${data.charges.toFixed(2)}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
+    
+    function resetAllDataWithPassword() {
+        const password = prompt("Enter admin password to reset all data:");
+        if (password !== "MeeshoAdmin123") {
+            showToast("Incorrect password");
+            return;
         }
         
-        function loadPurchases() {
-            db.collection("common_purchases").orderBy("timestamp", "desc").limit(10).get()
-            .then(snapshot => {
-                purchases = [];
+        if (confirm("WARNING: This will delete ALL data. Are you sure?")) {
+            // Delete all collections
+            const batch = db.batch();
+            
+            // Delete common inventory
+            db.collection("common_inventory").get().then(snapshot => {
                 snapshot.forEach(doc => {
-                    purchases.push({id: doc.id, ...doc.data()});
+                    batch.delete(doc.ref);
                 });
-                renderPurchasesTable();
+                return db.collection("common_purchases").get();
+            })
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                return db.collectionGroup('orders').get();
+            })
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                return db.collectionGroup('returns').get();
+            })
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                return batch.commit();
+            })
+            .then(() => {
+                showToast("All data has been reset");
+                loadInventory();
+                loadPurchases();
+                loadDashboardData('daily');
             })
             .catch(error => {
-                console.error("Error loading purchases: ", error);
+                console.error("Error resetting data: ", error);
+                showToast("Error resetting data");
             });
         }
+    }
+    
+    function playBeepSound() {
+        const beep = document.getElementById('beep-sound');
+        beep.currentTime = 0;
+        beep.play().catch(e => console.log("Audio play failed:", e));
+    }
+    
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
         
-        function renderPurchasesTable() {
-            const tableBody = document.querySelector('#purchases-table tbody');
-            tableBody.innerHTML = '';
-            
-            if (purchases.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No purchases recorded yet</td></tr>';
-                return;
-            }
-            
-            purchases.forEach(purchase => {
-                const row = document.createElement('tr');
-                
-                // Format date
-                const date = new Date(purchase.timestamp?.seconds * 1000 || purchase.date);
-                const formattedDate = date.toLocaleDateString('en-IN');
-                
-                // Count items
-                const itemCount = purchase.items.reduce((sum, item) => sum + item.quantity, 0);
-                
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${purchase.vendor}</td>
-                    <td>${itemCount} items</td>
-                    <td>₹${purchase.total.toFixed(2)}</td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+    
+    function showConfirmation(message) {
+        document.getElementById('confirmation-message').textContent = message;
+        document.getElementById('confirmation-popup').classList.add('active');
+    }
+    
+    function showView(viewId) {
+        // Hide all views
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.remove('active');
+        });
+        
+        // Show selected view
+        document.getElementById(viewId).classList.add('active');
+        
+        // Update bottom nav
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.toggle('active', item.getAttribute('data-target') === viewId);
+        });
+        
+        // Stop scanners when leaving scanner views
+        if(viewId !== 'scanner-view' && scannerActive) {
+            stopScanner();
+        }
+        if(viewId !== 'returns-view' && rescanActive) {
+            stopRescan();
         }
         
-        function loadDashboardData(period) {
-            // Calculate date range based on period
-            let startDate = new Date();
-            let endDate = new Date();
-            
-            switch(period) {
-                case 'daily':
-                    startDate.setHours(0, 0, 0, 0);
-                    break;
-                case 'weekly':
-                    startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of week
-                    startDate.setHours(0, 0, 0, 0);
-                    break;
-                case 'monthly':
-                    startDate.setDate(1);
-                    startDate.setHours(0, 0, 0, 0);
-                    break;
-                case 'all':
-                    startDate = new Date(0); // Unix epoch
-                    break;
-            }
-            
-            // Convert to Firestore timestamps
-            const startTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
-            const endTimestamp = firebase.firestore.Timestamp.fromDate(endDate);
-            
-            // Query orders and returns based on current seller
-            const ordersQuery = currentSeller === "combined" ? 
-                db.collectionGroup('orders') : 
-                db.collection(`sellers/${currentSeller}/orders`);
-            
-            const returnsQuery = currentSeller === "combined" ? 
-                db.collectionGroup('returns') : 
-                db.collection(`sellers/${currentSeller}/returns`);
-            
-            // Get orders in period
-            ordersQuery.where("timestamp", ">=", startTimestamp)
-                .where("timestamp", "<=", endTimestamp)
-                .get()
-                .then(ordersSnapshot => {
-                    orders = [];
-                    ordersSnapshot.forEach(doc => {
-                        orders.push({id: doc.id, ...doc.data()});
-                    });
-                    
-                    // Get returns in period
-                    return returnsQuery.where("timestamp", ">=", startTimestamp)
-                        .where("timestamp", "<=", endTimestamp)
-                        .get();
-                })
-                .then(returnsSnapshot => {
-                    returns = [];
-                    returnsSnapshot.forEach(doc => {
-                        returns.push({id: doc.id, ...doc.data()});
-                    });
-                    
-                    // Update dashboard with real data
-                    updateDashboard();
-                })
-                .catch(error => {
-                    console.error("Error loading dashboard data: ", error);
-                    showToast('Error loading dashboard data');
-                });
+        // Hide daily records when leaving dashboard
+        if(viewId !== 'dashboard-view') {
+            document.getElementById('daily-records').style.display = 'none';
         }
-        
-        function updateDashboard() {
-            // Calculate totals
-            const totalOrders = orders.length;
-            const totalReturns = returns.reduce((sum, r) => sum + r.quantity, 0);
-            
-            // Calculate earnings (sum of all order profits)
-            const totalEarnings = orders.reduce((sum, o) => sum + o.profit, 0);
-            
-            // Calculate return charges (sum of all customer return charges)
-            const returnCharges = returns
-                .filter(r => r.type === "customer")
-                .reduce((sum, r) => sum + (r.charge || 0), 0);
-            
-            // Net profit/loss
-            const netProfit = totalEarnings - returnCharges;
-            
-            // Update UI
-            document.getElementById('total-orders').textContent = totalOrders;
-            document.getElementById('total-returns').textContent = totalReturns;
-            document.getElementById('total-earnings').textContent = `₹${totalEarnings.toFixed(2)}`;
-            document.getElementById('return-charges').textContent = `₹${returnCharges.toFixed(2)}`;
-            document.getElementById('net-profit').textContent = `₹${netProfit.toFixed(2)}`;
-            
-            // Update daily records table
-            updateDailyRecordsTable();
-        }
-        
-        function updateDailyRecordsTable() {
-            const tableBody = document.querySelector('#daily-records-table tbody');
-            tableBody.innerHTML = '';
-            
-            // Group data by day
-            const dailyData = {};
-            
-            // Process orders
-            orders.forEach(order => {
-                const date = order.timestamp?.toDate() || new Date();
-                const dateStr = date.toISOString().split('T')[0];
-                
-                if (!dailyData[dateStr]) {
-                    dailyData[dateStr] = {
-                        date: dateStr,
-                        orders: 0,
-                        returns: 0,
-                        earnings: 0,
-                        charges: 0
-                    };
-                }
-                
-                dailyData[dateStr].orders += 1;
-                dailyData[dateStr].earnings += order.profit;
-            });
-            
-            // Process returns
-            returns.forEach(ret => {
-                const date = ret.timestamp?.toDate() || new Date();
-                const dateStr = date.toISOString().split('T')[0];
-                
-                if (!dailyData[dateStr]) {
-                    dailyData[dateStr] = {
-                        date: dateStr,
-                        orders: 0,
-                        returns: 0,
-                        earnings: 0,
-                        charges: 0
-                    };
-                }
-                
-                dailyData[dateStr].returns += ret.quantity;
-                
-                if (ret.type === "customer") {
-                    dailyData[dateStr].charges += ret.charge || 0;
-                }
-            });
-            
-            // Sort dates descending
-            const sortedDates = Object.keys(dailyData).sort((a, b) => new Date(b) - new Date(a));
-            
-            // Populate table
-            sortedDates.forEach(date => {
-                const data = dailyData[date];
-                const row = document.createElement('tr');
-                
-                // Format date for display
-                const displayDate = new Date(date).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
-                
-                row.innerHTML = `
-                    <td>${displayDate}</td>
-                    <td>${data.orders}</td>
-                    <td>${data.returns}</td>
-                    <td>₹${data.earnings.toFixed(2)}</td>
-                    <td>₹${data.charges.toFixed(2)}</td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
-        }
-        
-        function resetAllDataWithPassword() {
-            const password = prompt("Enter admin password to reset all data:");
-            if (password !== "MeeshoAdmin123") {
-                showToast("Incorrect password");
-                return;
-            }
-            
-            if (confirm("WARNING: This will delete ALL data. Are you sure?")) {
-                // Delete all collections
-                const batch = db.batch();
-                
-                // Delete common inventory
-                db.collection("common_inventory").get().then(snapshot => {
-                    snapshot.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-                    return db.collection("common_purchases").get();
-                })
-                .then(snapshot => {
-                    snapshot.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-                    return db.collectionGroup('orders').get();
-                })
-                .then(snapshot => {
-                    snapshot.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-                    return db.collectionGroup('returns').get();
-                })
-                .then(snapshot => {
-                    snapshot.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-                    return batch.commit();
-                })
-                .then(() => {
-                    showToast("All data has been reset");
-                    loadInventory();
-                    loadPurchases();
-                    loadDashboardData('daily');
-                })
-                .catch(error => {
-                    console.error("Error resetting data: ", error);
-                    showToast("Error resetting data");
-                });
-            }
-        }
-        
-        function playBeepSound() {
-            const beep = document.getElementById('beep-sound');
-            beep.currentTime = 0;
-            beep.play().catch(e => console.log("Audio play failed:", e));
-        }
-        
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
-        
-        function showConfirmation(message) {
-            document.getElementById('confirmation-message').textContent = message;
-            document.getElementById('confirmation-popup').classList.add('active');
-        }
-        
-        function showView(viewId) {
-            // Hide all views
-            document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('active');
-            });
-            
-            // Show selected view
-            document.getElementById(viewId).classList.add('active');
-            
-            // Update bottom nav
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.toggle('active', item.getAttribute('data-target') === viewId);
-            });
-            
-            // Stop scanners when leaving scanner views
-            if(viewId !== 'scanner-view' && scannerActive) {
-                stopScanner();
-            }
-            if(viewId !== 'returns-view' && rescanActive) {
-                stopRescan();
-            }
-            
-            // Hide daily records when leaving dashboard
-            if(viewId !== 'dashboard-view') {
-                document.getElementById('daily-records').style.display = 'none';
-            }
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
