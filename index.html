@@ -1901,7 +1901,6 @@ function startScanner() {
                 name: parts.find(p => p.startsWith('ITEM:')).split(':')[1],
                 size: parts.find(p => p.startsWith('SIZE:')).split(':')[1],
                 color: parts.find(p => p.startsWith('COLOR:')).split(':')[1],
-                profit: parseFloat(parts.find(p => p.startsWith('PROFIT:')).split(':')[1])
             };
             return result;
         } catch (e) {
