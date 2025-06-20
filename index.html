@@ -8,7 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <!-- Using jsQR library for QR code scanning -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
@@ -44,12 +43,12 @@
             font-size: 15px;
         }
 
-
         .scanner-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
         .app-container {
             max-width: 480px;
             margin: 0 auto;
@@ -84,24 +83,23 @@
             margin-top: 12px;
         }
 
-
         /* Scanner container with fixed aspect ratio */
         .scanner-container {
-    position: relative;
-    width: 100%;
-    height: 400px;
-    background: #000; /* Black background as fallback */
-    border-radius: 8px;
-    overflow: hidden;
-}
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
 
-.scanner-video {
-    display: block; /* Ensure it's visible */
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Maintain aspect ratio */
-    transform: scaleX(-1); /* Mirror the video */
-}
+        .scanner-video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
         
         /* Scanner overlay with guide */
         .scanner-overlay {
@@ -117,13 +115,13 @@
             z-index: 10;
         }
         
-       .scanner-frame {
-        width: 70%;
-        aspect-ratio: 1/1; /* Perfect square */
-        border: 4px solid rgba(0, 255, 0, 0.5);
-        border-radius: 12px;
-        box-shadow: 0 0 0 1000px rgba(249, 0, 0, 0.7);
-       }
+        .scanner-frame {
+            width: 70%;
+            aspect-ratio: 1/1;
+            border: 4px solid rgba(0, 255, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 0 0 1000px rgba(249, 0, 0, 0.7);
+        }
         
         .scanner-guide {
             position: absolute;
@@ -943,6 +941,91 @@
             padding: 8px 10px;
         }
 
+        /* Detail Modal */
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+        
+        .detail-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .detail-content {
+            background: white;
+            width: 90%;
+            max-width: 480px;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--light-gray);
+            padding-bottom: 10px;
+        }
+        
+        .detail-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .close-detail {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        
+        .detail-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            width: 120px;
+            color: var(--gray);
+        }
+        
+        .detail-value {
+            flex: 1;
+        }
+        
         /* Animations */
         @keyframes scaleIn {
             from { transform: scale(0); }
@@ -985,7 +1068,7 @@
                         <div class="icon-container">
                             <i>📊</i>
                         </div>
-                        <h3>Barcode Generator</h3>
+                        <h3>QR Code Generator</h3>
                         <p>Create & download scannable barcodes</p>
                     </div>
                     
@@ -994,7 +1077,7 @@
                             <i>📦</i>
                         </div>
                         <h3>Inventory Manager</h3>
-                        <p>Manage stock with barcode scanning</p>
+                        <p>Manage stock with QR scanning</p>
                     </div>
                     
                     <div class="feature-card" data-target="scanner-view">
@@ -1028,56 +1111,65 @@
                         <h3>Purchase History</h3>
                         <p>Track vendor purchases and expenses</p>
                     </div>
+                    
+                    <!-- NEW: Rescan Feature -->
+                    <div class="feature-card" data-target="rescan-view">
+                        <div class="icon-container">
+                            <i>🔍</i>
+                        </div>
+                        <h3>Inventory Rescan</h3>
+                        <p>Rescan items to add to inventory</p>
+                    </div>
                 </div>
             </div>
             
             <!-- Barcode Generator View -->
             <div id="barcode-view" class="view">
-    <div class="view-header">
-        <div class="back-btn">←</div>
-        <h2 class="view-title">QR Code Generator</h2>
-    </div>
-    
-    <form id="barcode-form">
-        <div class="form-group">
-            <label for="product-name">Product Name</label>
-            <input type="text" id="product-name" class="form-control" placeholder="Enter product name" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="product-size">Size</label>
-            <input type="text" id="product-size" class="form-control" placeholder="Enter size" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="product-color">Color</label>
-            <input type="text" id="product-color" class="form-control" placeholder="Enter color" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="profit-margin">Profit Margin (₹)</label>
-            <input type="number" id="profit-margin" class="form-control" placeholder="Enter profit in rupees" min="0" step="0.01" required>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Generate QR Code</button>
-    </form>
-    
-     <div class="barcode-container" id="barcode-result" style="display:none;">
-        <div id="qr-display-container" style="display:flex;background:white;padding:15px;border-radius:8px;">
-    <canvas id="qrcode-canvas" style="width:2in;height:2in;"></canvas>
-    <div style="margin-left:20px;font-weight:bold;">
-        <div>Name: <span id="qr-name-display"></span></div>
-        <div>Size: <span id="qr-size-display"></span></div>
-        <div>Color: <span id="qr-color-display"></span></div>
-    </div>
-</div>
-        <div class="barcode-actions">
-            <button id="download-barcode" class="btn btn-primary">Download QR Label</button>
-            <button id="save-barcode" class="btn btn-secondary">Save to Inventory</button>
-        </div>
-    </div>
-</div>
-
+                <div class="view-header">
+                    <div class="back-btn">←</div>
+                    <h2 class="view-title">QR Code Generator</h2>
+                </div>
+                
+                <form id="barcode-form">
+                    <div class="form-group">
+                        <label for="product-name">Product Name</label>
+                        <input type="text" id="product-name" class="form-control" placeholder="Enter product name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-size">Size</label>
+                        <input type="text" id="product-size" class="form-control" placeholder="Enter size" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-color">Color</label>
+                        <input type="text" id="product-color" class="form-control" placeholder="Enter color" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profit-margin">Profit Margin (₹)</label>
+                        <input type="number" id="profit-margin" class="form-control" placeholder="Enter profit in rupees" min="0" step="0.01" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Generate QR Code</button>
+                </form>
+                
+                 <div class="barcode-container" id="barcode-result" style="display:none;">
+                    <div id="qr-display-container" style="display:flex;background:white;padding:15px;border-radius:8px;">
+                        <canvas id="qrcode-canvas" style="width:2in;height:2in;"></canvas>
+                        <div style="margin-left:20px;font-weight:bold;">
+                            <div>Name: <span id="qr-name-display"></span></div>
+                            <div>Size: <span id="qr-size-display"></span></div>
+                            <div>Color: <span id="qr-color-display"></span></div>
+                        </div>
+                    </div>
+                    <div class="barcode-actions">
+                        <button id="download-barcode" class="btn btn-primary">Download QR Label</button>
+                        <button id="save-barcode" class="btn btn-secondary">Save to Inventory</button>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Inventory Manager View -->
             <div id="inventory-view" class="view">
                 <div class="view-header">
@@ -1089,7 +1181,7 @@
                     <div class="empty-state">
                         <i>📦</i>
                         <h3>No products in inventory</h3>
-                        <p>Add products using the barcode generator</p>
+                        <p>Add products using the QR code generator</p>
                     </div>
                 </div>
                 
@@ -1141,7 +1233,6 @@
                 <div class="tabs">
                     <div class="tab active" data-tab="customer">Customer Returns</div>
                     <div class="tab" data-tab="rto">RTO Returns</div>
-                    <div class="tab" data-tab="rescan">Rescan Items</div>
                 </div>
                 
                 <!-- Customer Returns Section -->
@@ -1198,33 +1289,6 @@
                     
                     <button id="process-rto-return" class="btn btn-primary">Process RTO Return</button>
                 </div>
-                
-                <!-- Rescan Items Section -->
-                <div class="return-section" id="rescan-section" style="display:none;">
-                    <div class="scanner-container" style="height: 200px;">
-                        <video id="rescan-video"></video>
-                        <div class="scanner-overlay">
-                            <div class="scanner-frame"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="scanned-rescan-result" id="scanned-rescan-result" style="display:none;">
-                        <div class="form-group">
-                            <label>Scanned Product</label>
-                            <input type="text" class="form-control" id="rescan-product" readonly>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="rescan-quantity">Quantity to Add</label>
-                            <input type="number" id="rescan-quantity" class="form-control" value="1" min="1">
-                        </div>
-                        
-                        <button id="confirm-rescan" class="btn btn-primary">Add to Inventory</button>
-                    </div>
-                    
-                    <button id="start-rescan" class="btn btn-primary">Start Rescan</button>
-                    <button id="stop-rescan" class="btn btn-secondary" style="display:none; margin-top:10px;">Stop Rescan</button>
-                </div>
             </div>
             
             <!-- Dashboard View -->
@@ -1243,7 +1307,7 @@
                 
                 <div class="stats-container">
                     <div class="stat-card">
-                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-label">Total Items Sold</div>
                         <div class="stat-value" id="total-orders">0</div>
                         <button class="view-details-btn" data-type="orders">View Details</button>
                     </div>
@@ -1270,14 +1334,14 @@
                     </div>
                 </div>
                 
-                <!-- Daily Records Table (hidden by default) -->
-                <div id="daily-records" class="chart-container" style="display:none;">
+                <!-- Daily Records Table -->
+                <div id="daily-records" class="chart-container">
                     <div class="chart-title" id="records-title">Daily Records</div>
                     <table class="summary-table" id="daily-records-table">
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Orders</th>
+                                <th>Items Sold</th>
                                 <th>Returns</th>
                                 <th>Earnings</th>
                                 <th>Charges</th>
@@ -1345,6 +1409,38 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- NEW: Rescan View -->
+            <div id="rescan-view" class="view">
+                <div class="view-header">
+                    <div class="back-btn">←</div>
+                    <h2 class="view-title">Inventory Rescan</h2>
+                </div>
+                
+                <div class="scanner-container">
+                    <video id="rescan-video"></video>
+                    <div class="scanner-overlay">
+                        <div class="scanner-frame"></div>
+                    </div>
+                </div>
+                
+                <div class="scanned-rescan-result" id="scanned-rescan-result" style="display:none;">
+                    <div class="form-group">
+                        <label>Scanned Product</label>
+                        <input type="text" class="form-control" id="rescan-product" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rescan-quantity">Quantity to Add</label>
+                        <input type="number" id="rescan-quantity" class="form-control" value="1" min="1">
+                    </div>
+                    
+                    <button id="confirm-rescan" class="btn btn-primary">Add to Inventory</button>
+                </div>
+                
+                <button id="start-rescan" class="btn btn-primary">Start Rescan</button>
+                <button id="stop-rescan" class="btn btn-secondary" style="display:none; margin-top:10px;">Stop Rescan</button>
+            </div>
         </div>
         
         <div class="nav-bottom">
@@ -1354,7 +1450,7 @@
             </div>
             <div class="nav-item" data-target="barcode-view">
                 <i>📊</i>
-                <span>Barcode</span>
+                <span>QR Code</span>
             </div>
             <div class="nav-item" data-target="inventory-view">
                 <i>📦</i>
@@ -1400,12 +1496,24 @@
             </div>
         </div>
         
+        <!-- Detail Modal -->
+        <div class="detail-modal" id="detail-modal">
+            <div class="detail-content">
+                <div class="detail-header">
+                    <div class="detail-title" id="detail-title">Order Details</div>
+                    <button class="close-detail">×</button>
+                </div>
+                <div id="detail-content">
+                    <!-- Content will be populated here -->
+                </div>
+            </div>
+        </div>
+        
         <!-- Audio element for beep sound -->
         <audio id="beep-sound" preload="auto">
             <source src="https://assets.mixkit.co/sfx/preview/mixkit-electronic-retail-notification-2575.mp3" type="audio/mpeg">
         </audio>
     </div>
-
 
 <script>
     // Firebase Configuration
@@ -1440,6 +1548,7 @@
     let scanningInterval;
     let canvasElement;
     let canvasContext;
+    let currentDetailType = "";
     
     // Initialize the app when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
@@ -1560,6 +1669,9 @@
         document.getElementById('start-rescan').addEventListener('click', startRescan);
         document.getElementById('stop-rescan').addEventListener('click', stopRescan);
         document.getElementById('confirm-rescan').addEventListener('click', confirmRescan);
+        document.querySelector('.close-detail').addEventListener('click', function() {
+            document.getElementById('detail-modal').classList.remove('active');
+        });
         
         // Dashboard filters
         document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1573,49 +1685,48 @@
         // View details buttons
         document.querySelectorAll('.view-details-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.getElementById('daily-records').style.display = 'block';
+                const type = this.dataset.type;
+                currentDetailType = type;
+                showDetailModal(type);
             });
         });
     }
 
     // QR Code Functions
-function generateQRCode() {
-    const productName = document.getElementById('product-name').value.trim();
-    const size = document.getElementById('product-size').value.trim();
-    const color = document.getElementById('product-color').value.trim();
-    
-    // Remove profitMargin check from validation
-    if (!productName || !size || !color) {
-        showToast('Please fill all fields');
-        return;
-    }
-    
-    // Remove PROFIT from QR data
-    const qrData = `ITEM:${productName}|SIZE:${size}|COLOR:${color}`;
-    
-    const canvas = document.getElementById('qrcode-canvas');
-    QRCode.toCanvas(canvas, qrData, {
-        width: 200,
-        margin: 2,
-        color: {
-            dark: '#000000',
-            light: '#ffffff'
-        }
-    }, function(error) {
-        if (error) {
-            console.error(error);
-            showToast('Error generating QR code');
+    function generateQRCode() {
+        const productName = document.getElementById('product-name').value.trim();
+        const size = document.getElementById('product-size').value.trim();
+        const color = document.getElementById('product-color').value.trim();
+        
+        if (!productName || !size || !color) {
+            showToast('Please fill all fields');
             return;
         }
         
-        // Remove profit display
-        document.getElementById('qr-name-display').textContent = productName;
-        document.getElementById('qr-size-display').textContent = size;
-        document.getElementById('qr-color-display').textContent = color;
+        const qrData = `ITEM:${productName}|SIZE:${size}|COLOR:${color}`;
         
-        document.getElementById('barcode-result').style.display = 'block';
-    });
-}
+        const canvas = document.getElementById('qrcode-canvas');
+        QRCode.toCanvas(canvas, qrData, {
+            width: 200,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function(error) {
+            if (error) {
+                console.error(error);
+                showToast('Error generating QR code');
+                return;
+            }
+            
+            document.getElementById('qr-name-display').textContent = productName;
+            document.getElementById('qr-size-display').textContent = size;
+            document.getElementById('qr-color-display').textContent = color;
+            
+            document.getElementById('barcode-result').style.display = 'block';
+        });
+    }
     
     function downloadQRWithText() {
         const container = document.getElementById('qr-display-container');
@@ -1655,40 +1766,38 @@ function generateQRCode() {
     }
     
     function saveToInventory() {
-    const productName = document.getElementById('product-name').value.trim();
-    const size = document.getElementById('product-size').value.trim();
-    const color = document.getElementById('product-color').value.trim();
-    const profitMargin = parseFloat(document.getElementById('profit-margin').value);
-    
-    // Remove profitMargin from validation
-    if (!productName || !size || !color) {
-        showToast('Please fill name, size and color');
-        return;
+        const productName = document.getElementById('product-name').value.trim();
+        const size = document.getElementById('product-size').value.trim();
+        const color = document.getElementById('product-color').value.trim();
+        const profitMargin = parseFloat(document.getElementById('profit-margin').value);
+        
+        if (!productName || !size || !color) {
+            showToast('Please fill name, size and color');
+            return;
+        }
+        
+        const productId = `${productName}-${size}-${color}`.toLowerCase().replace(/\s+/g, '_');
+        const qrData = `ITEM:${productName}|SIZE:${size}|COLOR:${color}`;
+        
+        db.collection("common_inventory").doc(productId).set({
+            name: productName,
+            size: size,
+            color: color,
+            profit: profitMargin,
+            qrData: qrData,
+            stock: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            showToast('Product saved to inventory!');
+            document.getElementById('barcode-form').reset();
+            document.getElementById('barcode-result').style.display = 'none';
+        })
+        .catch(error => {
+            console.error("Error saving product: ", error);
+            showToast('Error saving product');
+        });
     }
-    
-    // Remove PROFIT from QR data
-    const productId = `${productName}-${size}-${color}`.toLowerCase().replace(/\s+/g, '_');
-    const qrData = `ITEM:${productName}|SIZE:${size}|COLOR:${color}`;
-    
-    db.collection("common_inventory").doc(productId).set({
-        name: productName,
-        size: size,
-        color: color,
-        profit: profitMargin, // Keep in DB but not in QR
-        qrData: qrData,
-        stock: 0,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => {
-        showToast('Product saved to inventory!');
-        document.getElementById('barcode-form').reset();
-        document.getElementById('barcode-result').style.display = 'none';
-    })
-    .catch(error => {
-        console.error("Error saving product: ", error);
-        showToast('Error saving product');
-    });
-}
     
     function loadInventory() {
         const inventoryList = document.getElementById('inventory-list');
@@ -1805,92 +1914,87 @@ function generateQRCode() {
     }
     
     // Optimized QR Scanner
-function startScanner() {
-    const video = document.getElementById('scanner-video');
-    
-    // Clear any existing stream
-    if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-    }
-
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            facingMode: 'environment',
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 }
-        } 
-    }).then(function(stream) {
-        video.srcObject = stream;
+    function startScanner() {
+        const video = document.getElementById('scanner-video');
         
-        // Add this to make video visible
-        video.style.display = 'block';
-        video.style.objectFit = 'cover';
-        video.style.width = '100%';
-        video.style.height = '100%';
-        
-        return video.play();
-    })
-    .then(() => {
-        scannerActive = true;
-        console.log("Video playback started");
+        // Clear any existing stream
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
 
-        // Show/hide buttons
-        document.getElementById('start-scanning').style.display = 'none';
-        document.getElementById('stop-scanning').style.display = 'block';
-        document.getElementById('scanned-result').style.display = 'none';
+        navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 }
+            } 
+        }).then(function(stream) {
+            video.srcObject = stream;
+            video.style.display = 'block';
+            video.style.objectFit = 'cover';
+            video.style.width = '100%';
+            video.style.height = '100%';
+            return video.play();
+        })
+        .then(() => {
+            scannerActive = true;
+            console.log("Video playback started");
 
-        // Start scanning loop
-        scanFrame();
-    })
-    .catch(function(err) {
-        console.error("Camera error:", err);
-        showToast(`Camera error: ${err.message}`);
-    });
+            // Show/hide buttons
+            document.getElementById('start-scanning').style.display = 'none';
+            document.getElementById('stop-scanning').style.display = 'block';
+            document.getElementById('scanned-result').style.display = 'none';
 
-    // Scanning function
-    const scanFrame = () => {
-        if (!scannerActive) return;
-        
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            // Set canvas dimensions to match video
-            canvasElement.width = video.videoWidth;
-            canvasElement.height = video.videoHeight;
+            // Start scanning loop
+            scanFrame();
+        })
+        .catch(function(err) {
+            console.error("Camera error:", err);
+            showToast(`Camera error: ${err.message}`);
+        });
+
+        // Scanning function
+        const scanFrame = () => {
+            if (!scannerActive) return;
             
-            // Draw video frame to canvas
-            canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-            
-            // Get image data from canvas
-            const imageData = canvasContext.getImageData(
-                0, 0, canvasElement.width, canvasElement.height
-            );
-            
-            // Scan for QR codes
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-                maxScansPerSecond: 60
-            });
-            
-            if (code) {
-                // QR code found - parse the data
-                const qrData = parseQRData(code.data);
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                // Set canvas dimensions to match video
+                canvasElement.width = video.videoWidth;
+                canvasElement.height = video.videoHeight;
                 
-                if (qrData) {
-                    document.getElementById('scanned-product').value = code.data;
-                    document.getElementById('scanned-result').style.display = 'block';
-                    playBeepSound();
+                // Draw video frame to canvas
+                canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                // Get image data from canvas
+                const imageData = canvasContext.getImageData(
+                    0, 0, canvasElement.width, canvasElement.height
+                );
+                
+                // Scan for QR codes
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                    maxScansPerSecond: 60
+                });
+                
+                if (code) {
+                    // QR code found - parse the data
+                    const qrData = parseQRData(code.data);
                     
-                    // Stop scanning after successful detection
-                    scannerActive = false;
+                    if (qrData) {
+                        document.getElementById('scanned-product').value = code.data;
+                        document.getElementById('scanned-result').style.display = 'block';
+                        playBeepSound();
+                        
+                        // Stop scanning after successful detection
+                        scannerActive = false;
+                    }
                 }
             }
-        }
-        if (scannerActive) {
-            requestAnimationFrame(scanFrame);
-        }
-    };
-}
-            scanFrame();
-        
+            if (scannerActive) {
+                requestAnimationFrame(scanFrame);
+            }
+        };
+    }
     
     function parseQRData(qrData) {
         try {
@@ -2455,7 +2559,7 @@ function startScanner() {
     
     function updateDashboard() {
         // Calculate totals
-        const totalOrders = orders.length;
+        const totalItemsSold = orders.reduce((sum, o) => sum + o.quantity, 0);
         const totalReturns = returns.reduce((sum, r) => sum + r.quantity, 0);
         
         // Calculate earnings (sum of all order profits)
@@ -2470,7 +2574,7 @@ function startScanner() {
         const netProfit = totalEarnings - returnCharges;
         
         // Update UI
-        document.getElementById('total-orders').textContent = totalOrders;
+        document.getElementById('total-orders').textContent = totalItemsSold;
         document.getElementById('total-returns').textContent = totalReturns;
         document.getElementById('total-earnings').textContent = `₹${totalEarnings.toFixed(2)}`;
         document.getElementById('return-charges').textContent = `₹${returnCharges.toFixed(2)}`;
@@ -2495,15 +2599,17 @@ function startScanner() {
             if (!dailyData[dateStr]) {
                 dailyData[dateStr] = {
                     date: dateStr,
-                    orders: 0,
+                    itemsSold: 0,
                     returns: 0,
                     earnings: 0,
-                    charges: 0
+                    charges: 0,
+                    orders: []
                 };
             }
             
-            dailyData[dateStr].orders += 1;
+            dailyData[dateStr].itemsSold += order.quantity;
             dailyData[dateStr].earnings += order.profit;
+            dailyData[dateStr].orders.push(order);
         });
         
         // Process returns
@@ -2514,10 +2620,11 @@ function startScanner() {
             if (!dailyData[dateStr]) {
                 dailyData[dateStr] = {
                     date: dateStr,
-                    orders: 0,
+                    itemsSold: 0,
                     returns: 0,
                     earnings: 0,
-                    charges: 0
+                    charges: 0,
+                    returns: []
                 };
             }
             
@@ -2526,6 +2633,11 @@ function startScanner() {
             if (ret.type === "customer") {
                 dailyData[dateStr].charges += ret.charge || 0;
             }
+            
+            if (!dailyData[dateStr].returnsList) {
+                dailyData[dateStr].returnsList = [];
+            }
+            dailyData[dateStr].returnsList.push(ret);
         });
         
         // Sort dates descending
@@ -2545,14 +2657,142 @@ function startScanner() {
             
             row.innerHTML = `
                 <td>${displayDate}</td>
-                <td>${data.orders}</td>
+                <td>${data.itemsSold}</td>
                 <td>${data.returns}</td>
                 <td>₹${data.earnings.toFixed(2)}</td>
                 <td>₹${data.charges.toFixed(2)}</td>
             `;
             
+            // Add click event to show details
+            row.addEventListener('click', function() {
+                currentDetailType = "daily";
+                showDetailModal("daily", data);
+            });
+            
             tableBody.appendChild(row);
         });
+    }
+    
+    function showDetailModal(type, data) {
+        const modal = document.getElementById('detail-modal');
+        const title = document.getElementById('detail-title');
+        const content = document.getElementById('detail-content');
+        
+        modal.classList.add('active');
+        
+        if (type === "orders") {
+            title.textContent = "Order Details";
+            content.innerHTML = `
+                <div style="text-align:center;margin-bottom:20px;">
+                    <h3>All Orders</h3>
+                    <p>Showing ${orders.length} orders</p>
+                </div>
+                ${orders.map(order => `
+                    <div class="detail-item">
+                        <div class="detail-row">
+                            <div class="detail-label">Product:</div>
+                            <div class="detail-value">${order.productName}.${order.size}.${order.color}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Quantity:</div>
+                            <div class="detail-value">${order.quantity}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Profit:</div>
+                            <div class="detail-value">₹${order.profit}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Date:</div>
+                            <div class="detail-value">${new Date(order.timestamp?.seconds * 1000).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        } 
+        else if (type === "returns") {
+            title.textContent = "Return Details";
+            content.innerHTML = `
+                <div style="text-align:center;margin-bottom:20px;">
+                    <h3>All Returns</h3>
+                    <p>Showing ${returns.length} returns</p>
+                </div>
+                ${returns.map(ret => `
+                    <div class="detail-item">
+                        <div class="detail-row">
+                            <div class="detail-label">Type:</div>
+                            <div class="detail-value">${ret.type.toUpperCase()}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Courier:</div>
+                            <div class="detail-value">${ret.courier}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Quantity:</div>
+                            <div class="detail-value">${ret.quantity}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Date:</div>
+                            <div class="detail-value">${new Date(ret.timestamp?.seconds * 1000).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        else if (type === "daily" && data) {
+            title.textContent = `Details for ${new Date(data.date).toLocaleDateString()}`;
+            let contentHTML = `
+                <div class="detail-item">
+                    <div class="detail-row">
+                        <div class="detail-label">Items Sold:</div>
+                        <div class="detail-value">${data.itemsSold}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Returns:</div>
+                        <div class="detail-value">${data.returns}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Earnings:</div>
+                        <div class="detail-value">₹${data.earnings.toFixed(2)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Charges:</div>
+                        <div class="detail-value">₹${data.charges.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Add orders if available
+            if (data.orders && data.orders.length > 0) {
+                contentHTML += `
+                    <div class="detail-item">
+                        <h4>Orders</h4>
+                        ${data.orders.map(order => `
+                            <div class="detail-row">
+                                <div class="detail-label">Product:</div>
+                                <div class="detail-value">${order.productName}.${order.size}.${order.color} (${order.quantity} pcs)</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // Add returns if available
+            if (data.returnsList && data.returnsList.length > 0) {
+                contentHTML += `
+                    <div class="detail-item">
+                        <h4>Returns</h4>
+                        ${data.returnsList.map(ret => `
+                            <div class="detail-row">
+                                <div class="detail-label">${ret.type.toUpperCase()}:</div>
+                                <div class="detail-value">${ret.courier} (${ret.quantity} pcs)</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = contentHTML;
+        }
     }
     
     function resetAllDataWithPassword() {
@@ -2644,13 +2884,8 @@ function startScanner() {
         if(viewId !== 'scanner-view' && scannerActive) {
             stopScanner();
         }
-        if(viewId !== 'returns-view' && rescanActive) {
+        if(viewId !== 'rescan-view' && rescanActive) {
             stopRescan();
-        }
-        
-        // Hide daily records when leaving dashboard
-        if(viewId !== 'dashboard-view') {
-            document.getElementById('daily-records').style.display = 'none';
         }
     }
 </script>
