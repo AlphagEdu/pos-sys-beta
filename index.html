@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
     <style>
+        /* Styles remain the same as before */
         :root {
             --primary: #6f42c1;
             --primary-light: #8d6bd6;
@@ -50,6 +51,16 @@
         }
         
         .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 95vh;
+        }
+       .app-container {
             max-width: 480px;
             margin: 0 auto;
             background: white;
@@ -1045,6 +1056,7 @@
                 max-width: 480px;
             }
         }
+        /* ... rest of the styles remain the same ... */
     </style>
 </head>
 <body>
@@ -1052,7 +1064,7 @@
         <div class="app-header">
             <h1>INV Panel</h1>
             <p>Professional Inventory & Sales Management</p>
-                        <p>Made By Aamir</p>
+            <p>Made By Aamir</p>
 
             <button id="reset-all-btn" class="reset-btn" title="Reset all data">♻️</button>
             <div class="seller-switcher">
@@ -1114,7 +1126,6 @@
                         <p>Track vendor purchases and expenses</p>
                     </div>
                     
-                    <!-- NEW: Rescan Feature -->
                     <div class="feature-card" data-target="rescan-view">
                         <div class="icon-container">
                             <i>🔍</i>
@@ -1412,7 +1423,7 @@
                 </div>
             </div>
             
-            <!-- NEW: Rescan View -->
+            <!-- Rescan View -->
             <div id="rescan-view" class="view">
                 <div class="view-header">
                     <div class="back-btn">←</div>
@@ -1435,6 +1446,16 @@
                     <div class="form-group">
                         <label for="rescan-quantity">Quantity to Add</label>
                         <input type="number" id="rescan-quantity" class="form-control" value="1" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rescan-reason">Rescan Reason</label>
+                        <select id="rescan-reason" class="form-control">
+                            <option value="return">Customer Return</option>
+                            <option value="cancel">Order Cancellation</option>
+                            <option value="damaged">Damaged Item</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                     
                     <button id="confirm-rescan" class="btn btn-primary">Add to Inventory</button>
@@ -2267,6 +2288,7 @@
     function confirmRescan() {
         const productBarcode = document.getElementById('rescan-product').value.trim();
         const quantity = parseInt(document.getElementById('rescan-quantity').value);
+        const reason = document.getElementById('rescan-reason').value;
         
         if (!productBarcode || !quantity || quantity < 1) {
             showToast('Please scan a product and enter valid quantity');
@@ -2288,18 +2310,37 @@
         
         // Update inventory (common collection)
         const newStock = product.stock + quantity;
-        db.collection("common_inventory").doc(product.id).update({
-            stock: newStock
-        })
+        
+        // Create return record for profit adjustment
+        const returnData = {
+            type: "rescan",
+            productId: product.id,
+            productName: product.name,
+            size: product.size,
+            color: product.color,
+            quantity: quantity,
+            profit: -(product.profit * quantity), // Negative profit for reversal
+            reason: reason,
+            seller: currentSeller === "combined" ? "AAA" : currentSeller,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save both inventory update and return record
+        Promise.all([
+            db.collection("common_inventory").doc(product.id).update({
+                stock: newStock
+            }),
+            db.collection(`sellers/${returnData.seller}/returns`).add(returnData)
+        ])
         .then(() => {
-            showToast(`Added ${quantity} items to inventory: ${product.name}`);
+            showToast(`Added ${quantity} items to inventory and recorded profit adjustment.`);
             playBeepSound();
             document.getElementById('rescan-quantity').value = 1;
             stopRescan();
         })
         .catch(error => {
-            console.error("Error updating stock: ", error);
-            showToast('Error adding to inventory');
+            console.error("Error updating stock or saving return: ", error);
+            showToast('Error processing rescan');
         });
     }
     
@@ -2562,12 +2603,15 @@
     function updateDashboard() {
         // Calculate totals
         const totalItemsSold = orders.reduce((sum, o) => sum + o.quantity, 0);
-        const totalReturns = returns.reduce((sum, r) => sum + r.quantity, 0);
+        const totalReturns = returns
+            .filter(r => r.type === "customer" || r.type === "rto")
+            .reduce((sum, r) => sum + r.quantity, 0);
         
-        // Calculate earnings (sum of all order profits)
-        const totalEarnings = orders.reduce((sum, o) => sum + o.profit, 0);
+        // Calculate earnings (sum of all order profits and rescan returns)
+        const totalEarnings = orders.reduce((sum, o) => sum + o.profit, 0) +
+                             returns.reduce((sum, r) => r.type === "rescan" ? sum + r.profit : sum, 0);
         
-        // Calculate return charges (sum of all customer return charges)
+        // Calculate return charges (only customer returns, not rescan)
         const returnCharges = returns
             .filter(r => r.type === "customer")
             .reduce((sum, r) => sum + (r.charge || 0), 0);
@@ -2630,7 +2674,13 @@
                 };
             }
             
-            dailyData[dateStr].returns += ret.quantity;
+            if (ret.type === "customer" || ret.type === "rto") {
+                dailyData[dateStr].returns += ret.quantity;
+            }
+            
+            if (ret.type === "rescan") {
+                dailyData[dateStr].earnings += ret.profit; // Negative value reduces earnings
+            }
             
             if (ret.type === "customer") {
                 dailyData[dateStr].charges += ret.charge || 0;
@@ -2724,14 +2774,29 @@
                             <div class="detail-label">Type:</div>
                             <div class="detail-value">${ret.type.toUpperCase()}</div>
                         </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Courier:</div>
-                            <div class="detail-value">${ret.courier}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Quantity:</div>
-                            <div class="detail-value">${ret.quantity}</div>
-                        </div>
+                        ${ret.type === "rescan" ? `
+                            <div class="detail-row">
+                                <div class="detail-label">Product:</div>
+                                <div class="detail-value">${ret.productName}.${ret.size}.${ret.color}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Quantity:</div>
+                                <div class="detail-value">${ret.quantity}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Profit Adjustment:</div>
+                                <div class="detail-value">₹${ret.profit}</div>
+                            </div>
+                        ` : `
+                            <div class="detail-row">
+                                <div class="detail-label">Courier:</div>
+                                <div class="detail-value">${ret.courier}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Quantity:</div>
+                                <div class="detail-value">${ret.quantity}</div>
+                            </div>
+                        `}
                         <div class="detail-row">
                             <div class="detail-label">Date:</div>
                             <div class="detail-value">${new Date(ret.timestamp?.seconds * 1000).toLocaleString()}</div>
@@ -2786,7 +2851,7 @@
                         ${data.returnsList.map(ret => `
                             <div class="detail-row">
                                 <div class="detail-label">${ret.type.toUpperCase()}:</div>
-                                <div class="detail-value">${ret.courier} (${ret.quantity} pcs)</div>
+                                <div class="detail-value">${ret.courier ? ret.courier : ret.productName} (${ret.quantity} pcs)</div>
                             </div>
                         `).join('')}
                     </div>
